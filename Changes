@@ -1,0 +1,5 @@
+Revision history for Perl module Class::Declare
+$Id: Changes,v 1.4 2003/06/03 21:45:03 ian Exp $
+
+0.01	Tue Jun  3 21:42:14 2003
+	- initial Class::Declare release
