@@ -1,12 +1,12 @@
 #!/usr/bin/perl -Tw
-# $Id: 17storable.t,v 1.6 2003/06/03 22:50:46 ian Exp $
+# $Id: 17storable.t,v 1.7 2003/06/14 01:41:56 ian Exp $
 
 # storable.t
 #
 # Ensure Class::Declare objects are serializable via Storable.
 
 use strict;
-use Test::More	tests => 16;
+use Test::More	tests => 23;
 use Test::Exception;
 
 # define a Class::Declare package
@@ -47,7 +47,7 @@ ok( ref( $clone ) eq ref( $object ) , 'clone is an object' );
 ok(    $object   !=    $clone   , 'cloned object is different from original' );
 { # ensure the scalar the clone references is different from the original
 	no strict 'refs';
-	ok( ${ $object } != ${ $clone } ,
+	ok( ${ $object } ne ${ $clone } ,
 	    'cloned object index is different from original' );
 }
 
@@ -102,3 +102,41 @@ ok( ref( $clone->attribute ) eq 'CODE' ,
 # does this CODEREF return the correct value?
 ok( $clone->attribute->() == Test::Storable::Two::RANDOM ,
     "cloned attribute preserves original value" );
+
+
+# make sure Class::Declare handles two attributes assigned the same CODEREF
+# properly (i.e. when cloned, they point to the same CODEREF)
+
+package Test::Storable::Three;
+
+use strict;
+use base qw( Class::Declare );
+
+use constant	RANDOM		=> rand;
+use constant	SUBROUTINE	=> sub { RANDOM };
+
+__PACKAGE__->declare( public => { a => SUBROUTINE ,
+                                  b => SUBROUTINE } );
+
+1;
+
+# return to main to resume testing
+package main;
+
+	$object	= Test::Storable::Three->new;
+
+# make sure cloning survives with two attributes with CODEREF values
+lives_ok { $clone = dclone( $object ) }
+         "cloning of object with two code reference attribute values succeeds";
+
+# make sur eboth attributes are the same
+ok( $object->a ==  $clone-> a , "duplicate attribute code reference cloned" );
+ok( $object->b ==  $clone-> b , "duplicate attribute code reference cloned" );
+ok( $object->a == $object-> b , "duplicate attribute code reference cloned" );
+ok(  $clone->a ==  $clone-> b , "duplicate attribute code reference cloned" );
+
+# make sure they are still CODEREFs for the correct subroutine
+ok( ref( $clone->a ) eq 'CODE' ,
+    "cloning duplicate attribute preserves original code reference" );
+ok( $clone->a->() eq Test::Storable::Three::RANDOM ,
+    "cloning duplicate attribute preserves value" );

@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 02declare.t,v 1.7 2003/06/06 13:49:47 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 02declare.t,v 1.8 2003/06/15 19:09:00 ian Exp $
 
 # declare.t
 #
@@ -12,7 +12,7 @@
 #     scripts.
 
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 10;
 use Test::Exception;
 
 # create a package with derived from Class::Declare
@@ -123,3 +123,27 @@ lives_ok {
 
 	1
 } 'CODEREF attribute value OK' ;
+
+# can we declare a single attribute without a hash reference?
+lives_ok {
+	package Test::Declare::Nine;
+
+	use strict;
+	use base qw( Class::Declare );
+
+	__PACKAGE__->declare( public => 'attribute' );
+
+	1
+} 'single attribute definition OK';
+
+# can we declare a list of attributes, all defaulting to undef?
+lives_ok {
+	package Test::Declare::Ten;
+
+	use strict;
+	use base qw( Class::Declare );
+
+	__PACKAGE__->declare( class => [ qw( a b c d e f ) ] );
+
+	1
+} 'list of attributes defaulting to undef OK';

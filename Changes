@@ -1,5 +1,17 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.5 2003/06/06 13:56:31 ian Exp $
+$Id: Changes,v 1.8 2003/06/15 19:23:08 ian Exp $
+
+0.03	Sun Jun 15 19:22:36 2003
+	- changed underlying object store from list of hashes to hash of hashes
+	- arguments() now also accepts a list of argument names as well as a single
+	  name as the default arguments, in which case all arguments default to 
+	  undef
+	- attribute modifiers are now supported:
+	    + class attributes may be set read-write
+		+ instance attributes may be set read-only
+	- declare() now also accepts a list of attribute names as well as a
+	  single name for each type of attribute, in which case the attributes
+	  default to undef.
 
 0.02	Fri Jun  6 13:52:37 2003
 	- renamed "shared" attributes and methods "restricted" to avoid

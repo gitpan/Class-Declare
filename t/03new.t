@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 03new.t,v 1.3 2003/06/03 22:50:46 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 03new.t,v 1.4 2003/06/15 19:09:00 ian Exp $
 
 # new.t
 #
@@ -9,12 +9,13 @@
 #   - allows setting of public only attributes
 
 use strict;
-use Test::More tests => 9;
+use Test::More tests => 21;
 use Test::Exception;
 
 # Declare the a Class::Declare package
 package Test::New::One;
 
+use strict;
 use base qw( Class::Declare );
 
 __PACKAGE__->declare( public    => { mypublic    => 1 } ,
@@ -54,3 +55,52 @@ dies_ok { $obj = Test::New::One->new( myprotected => 2 ) }
         'protected attribute setting in the constructor';
 dies_ok { $obj = Test::New::One->new( myclass     => 2 ) }
         'class attribute setting in the constructor';
+
+
+# make sure single attribute declarations (i.e. only the attribute name is
+# given for a type of attribute), and lists of attributes work successfully
+
+package Test::New::Two;
+
+use strict;
+use base qw( Class::Declare );
+
+__PACKAGE__->declare( class  => 'my_class'  ,
+                      public => [ qw( a b ) ] );
+
+1;
+
+# return to main to resume testing
+package main;
+
+my	$class	= 'Test::New::Two';
+
+# make sure the new() call lives
+lives_ok { $obj = $class->new }
+         "new() with singleton & array reference attributes lives";
+
+# make sure we can access the class attribute accessor
+lives_ok { $class->my_class }
+         "singleton attribute accessor defined via class";
+lives_ok {   $obj->my_class }
+         "singleton attribute accessor defined via object";
+
+# make sure the class attribute is undefined
+ok( ! defined $class->my_class , "class attribute via class is undefined" );
+ok( ! defined   $obj->my_class , "class attribute via object is undefined" );
+
+# make sure the instance attributes can be accessed
+lives_ok { $obj->a } "list of attribute names accessort created";
+lives_ok { $obj->b } "list of attribute names accessort created";
+
+# make sure the instance attributes are undefined
+ok( ! defined $obj->a , "list of attributes default to undef" );
+ok( ! defined $obj->b , "list of attributes default to undef" );
+
+# make sure lists of attributes can be set in the constructor
+lives_ok { $obj = $class->new( a => 1 , b => 2 ) }
+         "attributes specified as list ok in constructor";
+
+# make sure the attributes have the value from the constructor call
+ok( $obj->a == 1 , "constrcutor performs correct initialisation" );
+ok( $obj->b == 2 , "constrcutor performs correct initialisation" );

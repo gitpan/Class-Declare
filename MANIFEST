@@ -27,3 +27,7 @@ t/19friend.t
 t/20dump.t
 t/21clone.t
 t/22shared.t
+t/23export.t
+t/24modifiers.t
+t/25readonly.t
+t/26readwrite.t

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.37 2003/06/06 12:18:29 ian Exp $
+# $Id: Declare.pm,v 1.48 2003/06/15 19:35:22 ian Exp $
 package Class::Declare;
 
 use strict;
@@ -72,12 +72,18 @@ and methods.
 =cut
 
 
-use base qw( Exporter           );
-use vars qw/ $VERSION $REVISION /;
+use base qw( Exporter );
+use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION	= '0.02';
-			 $REVISION	= '$Revision: 1.37 $';
+             $VERSION	= '0.03';
+			 $REVISION	= '$Revision: 1.48 $';
+
+# declare the read-write and read-only methods for export
+@EXPORT_OK		= qw( rw ro );
+%EXPORT_TAGS	= (  modifiers   => \@EXPORT_OK  ,
+            	    'read-only'  => [ qw( ro ) ] ,
+            	    'read-write' => [ qw( rw ) ] );
 
 # use Storable for deep-cloning of Class::Declare objects
 use Storable;
@@ -231,12 +237,14 @@ strict access checking. I<param> may have one of the following values:
 
 =item I<public>
 
-I<public> expects a hash reference of attribute names and default values,
-that represent the public attributes of this class. B<Class::Declare>
+I<public> expects either a hash reference of attribute names and default
+values, an array reference containing attribute names whose default values will
+be C<undef>, or a single attribute name whose value will default to C<undef>.
+These represent the public attributes of this class. B<Class::Declare>
 constructs accessor methods within the class, with the same name as the
-attributes. These methods are C<lvalue> methods, which means that the
-attributes may be assigned to, as well as being set by passing the new value
-as an accessor's argument.
+attributes. These methods are C<lvalue> methods by default (see also B<Attribute
+Modifiers> below), which means that the attributes may be assigned to,
+as well as being set by passing the new value as an accessor's argument.
 
 For example:
 
@@ -264,6 +272,17 @@ may be set during the object creation call:
 
 I<public> attributes are instance attributes and therefore may only be
 accessed through class instances, and not through the class itself.
+
+Note that the B<declare()> call for C<My::Class> from above could have been
+written as
+
+  __PACKAGE__->declare( public => [ qw( name ) ] );
+
+or
+
+  __PACKAGE__->declare( public => 'name' );
+
+In these cases, the attribute C<name> would have had a default value of C<undef>.
 
 =item I<private>
 
@@ -452,11 +471,12 @@ error with B<die()>.
 	#
 	my	%__INIT__		= ();
 
-	# define class default attribute storage
+	# define class default attribute storage, mapping attribute to default
+	# value
 	#
 	my	%__DEFN__		= ();
 
-	# define class default attribute storage
+	# define class default attribute storage, mapping attribute to type
 	#
 	my	%__ATTR__		= ();
 
@@ -470,51 +490,7 @@ error with B<die()>.
 
 	# define global object storage
 	#
-	my	@__OBJECTS__	= ();	# array holding current object hashes
-	my	@__DESTROYED__	= ();	# indices of destroyed objects
-
-	# pre-extend the @__OBJECTS__ array and randomly populate the
-	# @__DESTROYED__ array to minimise the risk of object indices
-	# being predicted
-	{
-		# define the number of indices to pre-declare
-		my $INDICES		= 31;	# $INDICES+1 entries created
-
-		# generate an empty @__OBJECTS__ array
-			$__OBJECTS__[ $INDICES ]	= undef;
-
-		# generate a random list of indices to prepopulate the
-		# @__DESTROYED__ array
-		#    - new object indices will be taken from this list
-
-		# $shuffle()
-		#
-		# Implementation of Fisher-Yates shuffle, as presented in
-		# "Perl Cookbook", by Christiansen and Torkington, O'Reilly &
-		# Associates, First Edition, p121.
-		my	$shuffle	= sub {
-				for ( my $i = scalar @_ ; --$i ; ) {
-					my	$j	= int( rand( $i + 1 ) );
-
-					# don't bother with the swap if there's no swap
-					next		if ( $i == $j );
-
-					# swap the array elements
-					@_[ $i , $j ]	= @_[ $j , $i ];
-				}
-
-				@_;		# return the now scrambled array
-			}; # $shuffle()
-
-		# generate the random list of "destroyed" indices
-			@__DESTROYED__	= $shuffle->( 0 .. $INDICES );
-	}
-
-	# define a random offset for the object indices
-	#    NB: this will not be used to generate actual array indices,
-	#        but rather to hide the actual object position within the
-	#        @__OBJECTS__ array.
-	my	$OFFSET			= int( rand time );
+	my	%__OBJECTS__	= ();	# hash holding current object hashes
 
 	# create a map to say which attributes are instance attributes and
 	# which are class attributes
@@ -540,15 +516,11 @@ sub declare : locked
 				. $__DECL__{ $class }->{ line } . ")\n";
 
 	# make sure we have a valid set of arguments
-	my	$_args	= __PACKAGE__->arguments( \@_ => { public     => undef ,
-	  	      	                                   private    => undef ,
-	  	      	                                   protected  => undef ,
-	  	      	                                   class      => undef ,
-	  	      	                                   static     => undef ,
-	  	      	                                   restricted => undef ,
-	  	      	                                   init       => undef ,
-	  	      	                                   strict     => undef ,
-	  	      	                                   friends    => undef } );
+	my	$_args	= __PACKAGE__->arguments(
+						\@_ => [ qw( class  static  restricted
+						             public private protected
+						             init   strict  friends    ) ]
+	  	      	  ); # $_args
 
 	# ensure the init argument is undefined or is a code ref
 	( ! defined $_args->{ init } || ref( $_args->{ init } ) eq 'CODE' )
@@ -592,6 +564,38 @@ sub declare : locked
 		$__FRIEND__{ $class }	= { map { $_ => undef } @{ $friends } };
 	}
 
+	# make sure the arguments are understandable
+	#   i.e. we either have a hash reference, an array reference or a scalar
+	#   (non-reference) value for the value of each type of attribute (so that
+	#   we can simplify the specification of attributes)
+	foreach my $type ( keys %{ $_args } ) {
+		my	$ref	= $_args->{ $type };
+
+		# ignore this type of attribute if none have been declared
+		next		unless ( defined $ref );
+
+		# if we have a hash reference, then ignore this type of attribute
+		next		if ( ref( $ref ) && ref( $ref ) eq 'HASH' );
+
+		# if we don't have a reference, then we can assume that we have simply
+		# been given the attribute name and should therefore default the
+		# attribute to undef
+			$ref	= { $ref => undef }		unless ( ref $ref );
+		# if we have an array reference rather than a hash reference, then
+		# convert this into a hash with undef default attribute values
+			$ref	= { map { $_ => undef } @{ $ref } }	
+												if ( ref $ref eq 'ARRAY' );
+
+		# must make sure we have a hash reference (at this stage)
+		( ref( $ref ) eq 'HASH' )
+			or die "Scalar, array reference, or hash reference expected "
+			       . "for declaration of $type attributes at $file line "
+				   . "$line\n";
+
+		# make sure the arguments hash is updated with the new reference
+			$_args->{ $type }	= $ref;
+	}
+
 	# make sure there are no duplicate attribute names
 	{
 		local	%_;
@@ -628,16 +632,11 @@ sub declare : locked
 		# if there are no types of these routines, then don't proceed
 		next TYPE		unless ( defined $ref );
 
-		# must make sure we have a hash reference
-		( ref( $ref ) eq 'HASH' )
-			or die "Hash reference expected for declaration of $type "
-			       . "attributes at $file line $line\n";
-
 		# create all of the attribute accessor methods for this package
 		CREATE: foreach ( $type ) {
 			# class attribute
 			( ! $__INSTANCE__{ $_ } )	&& do {
-				METHOD: foreach my $method ( keys %{ $ref } ) {
+				foreach my $method ( keys %{ $ref } ) {
 					# firstly, make sure this class doesn't already have a
 					# method of this name defined
 					( $class->has( $method ) )
@@ -659,12 +658,38 @@ sub declare : locked
 
 						# generate the glob name
 						my	$glob	= join '::' , $class , $method;
+						my	$value	= $ref->{ $method };
+						# by default class attributes are read-only
+						my	$write	= undef;
 
-						# class methods simply return a value
-					 	*{ $glob }	= sub {
-								my	$self	= $class->$type( shift , $glob );
+						# do we have a Class::Declare::Read object?
+						if (    ref( $value )
+						     &&      $value =~ m#=#o
+						     &&      $value->isa( 'Class::Declare::Read' ) ) {
+							# then we need to extract the actual attribute
+							# value and determine if it is read-write
+							                 	  $write	= $value->write;
+							# make sure we store the value, and not the the
+							# wrapper Class::Declare::Read object beyond this
+							# point
+							$ref->{ $method }	= $value	= $value->value;
+						}
 
-								return $ref->{ $method };
+						# should we create a read-only or a read-write
+						# accessor?
+					 	*{ $glob }	= ( $write ) ?
+							# the accessor should be read-write
+							sub : lvalue {
+								$class->$type( shift , $glob );
+
+								$value	= shift		if ( @_ );
+								$value;
+							} :
+							# the accessor should be read only
+							sub {
+								$class->$type( $_[ 0 ] , $glob );
+
+								return $value;
 							}; # new class/static/restricted method
 					}
 				}
@@ -674,7 +699,7 @@ sub declare : locked
 
 			# otherwise we're creating public, protected and private
 			# methods
-			METHOD: foreach my $method ( keys %{ $ref } ) {
+			foreach my $method ( keys %{ $ref } ) {
 				# need to make sure this class doesn't have a method of this
 				# name already
 				( $class->has( $method ) )
@@ -695,17 +720,32 @@ sub declare : locked
 
 					# generate the glob name
 					my	$glob	= join '::' , $class , $method;
+					my	$value	= $ref->{ $method };
+					# by default instance attributes are read-write
+					my	$write	= 1;
 
-					# public, private and protected attributes are lvalue
-					# methods that update the object hash
-				 	*{ $glob }	= sub : lvalue {
+					# do we have a Class::Declare::Read object?
+					if (    ref( $value )
+						 &&      $value =~ m#=#o
+					     &&      $value->isa( 'Class::Declare::Read' ) ) {
+						# then we need to extract the actual attribute
+						# value and determine if it is read-write
+						$write				= $value->write;
+						# have to store the attribute value back into the
+						# original hash
+						$ref->{ $method }	= $value->value;
+					}
+
+					# should we create a read-write or a read-only accessor?
+				 	*{ $glob }	= ( $write ) ?
+						# the accessor should be read-write
+						sub : lvalue {
 							my	$self	= $class->$type( shift , $glob );
 
-							my	( $indx , $hash );
+							my	$hash;
 							# make sure we have a valid object
 							( ref( $self )
-								and ( $indx = ${ $self } - $OFFSET ) >= 0
-								and   $hash	= $__OBJECTS__[ $indx ] )
+								and $hash	= $__OBJECTS__{ ${ $self } } )
 								 or do {
 									my	( undef , $file , $line )	= caller 0;
 									die "$self is not a $class object at "
@@ -715,6 +755,23 @@ sub declare : locked
 							# set the value if required and return
 								$hash->{ $method }	= shift		if ( @_ );
 								$hash->{ $method };
+						} :
+						# the accessor should be read-only
+						sub {
+							my	$self	= $class->$type( $_[ 0 ] , $glob );
+
+							my	$hash;
+							# make sure we have a valid object
+							( ref( $self )
+								and $hash	= $__OBJECTS__{ ${ $self } } )
+								 or do {
+									my	( undef , $file , $line )	= caller 0;
+									die "$self is not a $class object at "
+									    . "$file line $line\n";
+								};
+
+							# return the required value
+							return $hash->{ $method };
 						}; # new public/private/protected method
 				}
 			}
@@ -819,10 +876,6 @@ sub new : locked
 	my	$self	= __PACKAGE__->class( shift );
 	my	$class	= ref( $self ) || $self;
 
-	# extract the next available slot in our array of objects
-	my	$indx	=  shift @__DESTROYED__;
-		$indx	= scalar @__OBJECTS__		unless ( defined $indx );
-
 	# generate the combined @ISA array for this class
 	my	@isa	= ( $class );
 	my	$i		= 0;
@@ -859,12 +912,12 @@ sub new : locked
 			#   attributes
 			# however, if we've been called as an instance method, then we
 			#   should use the calling object's instance hash (stored in
-			#   @__OBJECTS__) for the default values
+			#   %__OBJECTS__) for the default values
 			# have we been called as an instance method?
 			#   - extract the instance hash
 			#   - otherwise, use the class's default hash (ignore this class
 			#       if there is no default hash)
-			my	$defn	= ref( $self ) ? $__OBJECTS__[ ${ $self } - $OFFSET ]
+			my	$defn	= ref( $self ) ? $__OBJECTS__{ ${ $self } }
 			     	                   : $__DEFN__{ $isa };
 
 			# split the typemap hash into key/value pairs
@@ -895,11 +948,12 @@ sub new : locked
 	}
 
 	# create an anonymous hash reference for this object
-		$__OBJECTS__[ $indx ]	= \%hash;
+	my	$ref					= \%hash;
+	my	( $key )				=  ( $ref =~ m#0x([a-f\d]+)#o );
+		$__OBJECTS__{ $key }	= $ref;
 
 	# create the new object (applying the index offset)
-		$indx	+= $OFFSET;
-	my	$obj	 = bless \$indx => $class;
+	my	$obj	 = bless \$key => $class;
 
 	# if there were any arguments passed, then these will be used to
 	# set the parameters for this object
@@ -1102,6 +1156,7 @@ sub restricted
 	    . "sub-class at $file line $line\n";
 } # restricted()
 
+
 # NB: restricted() used to be shared(), so let's put a stub in place to show
 #     the deprecation of shared()
 sub shared
@@ -1280,25 +1335,132 @@ it's parent's C<DESTROY()> method, using a paradigm similar to the following:
 
 # DESTROY()
 #
-# Free hash references and keep track of available slots in the
-# @__OBJECTS__ array
+# Free object hash references.
 sub DESTROY : locked
 {
 	my	$self	= __PACKAGE__->public( shift );
 
 	# delete the hash holding this object's data
-	# NB: the @__OBJECTS__ array is maintained at its maximum length
-	#     to avoid reallocation when more objects are required
-	my	$indx					= ${ $self } - $OFFSET;
-	# make sure the index is positive or zero, otherwise we could
-	# destroy another object
-	if ( $indx >= 0 ) {
-		$__OBJECTS__[ $indx ]	= undef;
-
-		# add this index to the list of destroyed indices
-		push @__DESTROYED__ , $indx;
-	}
+	delete $__OBJECTS__{ ${ $self } };
 } # DESTROY()
+
+
+=head2 Attribute Modifiers
+
+By default B<Class::Declare> class attributes (C<class>, C<static>, and
+C<restricted>) are I<read-only>, while instance attributes (C<public>,
+C<private>, and C<protected>) are I<read-write>. B<Class::Declare> provides
+two attribute modifiers, B<rw> and B<ro> for changing this behaviour, allowing
+class attributes to be read-write, and instance attributes to be read only.
+
+The modifiers may be imported separately,
+
+  use Class::Declare qw( :read-only  );
+
+or
+
+  use Class::Declare qw( ro );
+
+or
+
+  use Class::Declare qw( :read-write );
+
+or
+  
+  use Class::Declare qw( rw );
+
+or collectively, using the C<:modifiers> tag.
+
+  use Class::Declare qw( :modifiers );
+
+To use the modifiers, they must be incorporated into the attribute definition
+for the class. For example:
+
+  package My::Class;
+
+  use strict;
+  use Class::Declare qw( :modifiers );
+  use vars           qw( @ISA );
+      @ISA = qw( Class::Declare );
+
+  __PACKAGE__->declare( class  => { my_class  => rw undef } ,
+                        public => { my_public => ro 1234  } );
+
+Here, the attribute C<my_class> has been declared I<read-write> by B<rw>,
+permitting it's value to be changed at run time. The public attribute
+C<my_public> has been declared I<read-only> by B<ro>, preventing it from being
+changed once set. Please note that although they may be marked as I<read-only>,
+public attributes may still be set during object creation (i.e. in the call
+to B<new()>). However, once set, the value may not be changed.
+
+=over 4
+
+=item B<rw>
+
+Declare a class attribute to be I<read-write>, instead of defaulting to
+read-only. Note that this has no effect on instance attributes as they are
+read-write by default.
+
+
+=item B<ro>
+
+Declare an instance attribute to be I<read-only>, instead of defaulting to
+read-write. Note that this has no effect on class attributes as they are
+read-only by default.
+
+=back
+
+=cut
+
+{ # closure for declaring the Read::Write and Read::Only classes
+
+	{
+	# declare a base Read class
+	package Class::Declare::Read;
+
+	use strict;
+	use base qw( Class::Declare );
+
+	__PACKAGE__->declare( public => { value => undef } );
+
+	1;
+
+
+	# declare the Read::Only class
+	package Class::Declare::Read::Only;
+
+	use strict;
+	use base qw( Class::Declare::Read );
+
+	__PACKAGE__->declare( class => { write => undef } );
+
+	1;
+
+
+	# declare the Read::Write class
+	package Class::Declare::Read::Write;
+
+	use strict;
+	use base qw( Class::Declare::Read );
+
+	__PACKAGE__->declare( class => { write => 1     } );
+
+	1;
+	}
+
+# make the given scalar as read-write
+sub rw ($)
+{
+	return Class::Declare::Read::Write->new( value => shift );
+} # rw()
+
+# mark the given scalar as read-only
+sub ro ($)
+{
+	return  Class::Declare::Read::Only->new( value => shift );
+} # ro()
+
+} # end of Read::Write and Read::Only closure
 
 
 =head2 Serialising Objects
@@ -1345,13 +1507,11 @@ sub STORABLE_freeze : locked
 	# serialise the object
 	#
 	
-	# we only want to freeze the actual @__OBJECTS__ index and the
-	# hash, not the offset as this may change between freezing and
-	# thawing
-	my	$indx		= ${ $self } - $OFFSET;
+	# we want to freeze the actual %__OBJECTS__ key and the data hash
+	my	$key		= ${ $self };
 
 	# extract the object hash
-	my	$hash		= $__OBJECTS__[ $indx ];
+	my	$hash		= $__OBJECTS__{ $key };
 
 	# if we're cloning, then we may have to play with attributes that have
 	# CODEREFs as values
@@ -1378,7 +1538,7 @@ sub STORABLE_freeze : locked
 			# now store the coderef in %__CODEREFS__: use the package, attribute
 			# and CODEREF itself as the key
 			my	$key					= join '=' , ref( $self ) , $_
-			  	    					           , $value       , $indx;
+			  	    					           , $value       , $key;
 				$__CODEREFS__{ $key }	= $value;
 
 			# replace the original CODEREF with the key
@@ -1392,8 +1552,8 @@ sub STORABLE_freeze : locked
 	# return the object index and the object hash to serialise
 	# as well as the list of attributes whose values are CODEREFs and who
 	# have had these CODEREFs "serialised" in memory
-	return ( defined $code ) ? ( $indx , $hash , $code )
-	                         : ( $indx , $hash         );
+	return ( defined $code ) ? ( $key , $hash , $code )
+	                         : ( $key , $hash         );
 } # STORABLE_freeze()
 
 
@@ -1420,7 +1580,7 @@ sub STORABLE_thaw : locked
 
 	# OK, @ref should contain the index of the object and a reference
 	# to a hash representing the object
-	my	( $indx , $hash , $code )	= @_;
+	my	( $key , $hash , $code )	= @_;
 	( ref $hash eq 'HASH' )
 		or do {
 			my	( undef , $file , $line , $sub )	= caller 0;
@@ -1430,23 +1590,10 @@ sub STORABLE_thaw : locked
 				. "\t(HASH reference expected, got $hash)\n";
 		};
 
-	# if the restored index is larger than the size of the
-	# @__OBJECTS__ array, then we will need to extend the array,
-	# ensuring the indices of the new elements in the array are added
-	# to the @__DESTROYED__ array, so that they will be used at a
-	# later date
-	( $indx > $#__OBJECTS__ )
-		and push @__DESTROYED__ , ( $#__OBJECTS__ + 1 ) .. ( $indx - 1 );
-
-	# if this slot has been (or is still allocated) then we need to
-	# find the next available slot for recreating this object
-	if ( defined $__OBJECTS__[ $indx ] ) {
-		$indx	=  shift @__DESTROYED__;
-		$indx	= scalar @__OBJECTS__		unless ( defined $indx );
-	}
-
-	# ensure this index does not appear in the @__DESTROYED__ array
-		@__DESTROYED__			= grep { $_ != $indx } @__DESTROYED__;
+	# if this slot has been taken, then create a new index from the address
+	# of the new hash
+	( exists $__OBJECTS__{ $key } )
+		and ( $key )	= ( $hash =~ m#0x([a-f\d]+)#o );
 
 	# if we have code references stored in memory and we're cloning,
 	# then attempt to retrieve them
@@ -1465,8 +1612,8 @@ sub STORABLE_thaw : locked
 	}
 
 	# now we can store the object and recreate it
-		$__OBJECTS__[ $indx ]	= $hash;
-		${ $self }				= $indx + $OFFSET;
+		$__OBJECTS__{ $key }	= $hash;
+		${ $self }				= $key;
 
 	# that's all folks
 } # STORABLE_thaw()
@@ -1647,14 +1794,13 @@ sub dump : locked
 	#     the object, or the default attribute values for the class
 	my	$__get_values__	= sub { # <class> | <object>
 			my	$self	= shift;
-			my	$indx	= undef;
+			my	$hash	= undef;
 
 			# make sure we have a valid object
 			( ref( $self )
-				and ( $indx = ${ $self } - $OFFSET ) >= 0
-				and exists $__OBJECTS__[ $indx ]
+				and $hash	= $__OBJECTS__{ ${ $self } }
 				# and return the reference to its hash
-				and return $__OBJECTS__[ $indx ] )
+				and return $hash )
 				# or return the default values for this class
 				 or return  $__DEFN__{ $self };
 		}; # $__get_values__()
@@ -1683,7 +1829,7 @@ sub dump : locked
 	#     method, so that future calls to Class::Declare::dump() do
 	#     not execute this code, but rather the intended dump() code.
 	#
-	#     Because Class::Declare::Dump needs access to @__OBJECTS__,
+	#     Because Class::Declare::Dump needs access to %__OBJECTS__,
 	#     %__ATTR__ and %__FRIEND__, we need to somehow make them
 	#     available to Class::Declare::Dump, even though they are "my"
 	#     variables in Class::Declare. One option would be to use the
@@ -1782,12 +1928,21 @@ Here, C<mysub()> will accept two arguments, C<name> and C<age>, where
 the default value for C<name> is C<'Guest user'>, while C<age> defaults
 to C<undef>.
 
-Note that the argument I<args> is a reference to the caller's argument list,
-and I<default> is a reference to a hash defining the expected argument
-names and their default values. If I<default> is not given (or is undef),
-then B<arguments()> will simply flatten the argument list into a hash and
-assume that all named arguments are valid. If I<default> is the empty hash
-(i.e. C<{}>), then no named arguments will be accepted.
+Alternatively, B<arguments()> may be called in either of the following ways:
+
+    my %args = $self->arguments( \@_ => [ qw( name age ) ] );
+
+or
+
+    my %args = $self->arguments( \@_ => 'name' );
+
+Here, the default argument values are C<undef>, and in the second example,
+only the the single argument I<name> will be recognized.
+
+If I<default> is not given (or is undef), then B<arguments()> will simply
+flatten the argument list into a hash and assume that all named arguments are
+valid. If I<default> is the empty hash (i.e. C<{}>), then no named arguments
+will be accepted.
 
 If called in a list context, B<arguments()> returns the argument hash, while if
 called in a scalar context, B<arguments()> will return a reference to the hash.
@@ -1827,15 +1982,21 @@ sub arguments
 		$args	= { @{ $args } };
 
 	# if there is a set of default arguments defined, then make sure
-	# the given arguments conform, otherwise, accept whatever
-	# arguments we're given
+	# the given arguments conform, otherwise, if there are no default
+	# arguments, accept whatever we're given
 	if ( defined $default ) {
+		# the default arguments should either be a single argument name
+		$default	= { $default => undef }		unless ( ref $default );
+		# or a list of argument names, where the default values are undef
+		$default	= { map { $_ => undef } @{ $default } }
+											if ( ref( $default ) eq 'ARRAY' );
+
 		# make sure default is a hash reference
 		( ref( $default ) eq 'HASH' )
 			or do {
 				my	( undef , $file , $line , $sub )	= caller 0;
 
-				die "Default arguments must be a hash reference at "
+				die "Unrecognized default arguments $default at "
 				    . "$sub() file $file line $line\n";
 			};
 
@@ -1875,7 +2036,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.37 $';
+               $REVISION = '$Revision: 1.48 $';
 
   ...
 
@@ -1955,23 +2116,17 @@ sub has
 						# find out where we were called from
 						my	( undef , $file , $line )	= caller;
 
-						die "no method name supplied in call to can() "
+						die "no method name supplied in call to has() "
 						    . "at $file line $line\n";
 					};
 
 	# extract the symbol table entry for this method
 	{
-		local	$@;
-		my		$class	= ref( $self ) || $self;
-		local	*glob	= eval '$' . $class . '::{ ' . $method . ' }'
-									|| return undef;
+		no strict 'refs';
+		local	$^W	= 0;	# suppress warnings
 
-		# if something has gone wrong, raise a warning and return undef
-		warn	and return undef		if ( $@ );
-		
-		# if we have a subroutine defined, then return the reference
-		# otherwise, return undef
-		return ( defined &glob ) ? \&glob : undef;
+		my	$class	= ref( $self ) || $self;
+		return *{ $class . '::'. $method }{ CODE };
 	}
 } # has()
 

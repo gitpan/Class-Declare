@@ -1,12 +1,12 @@
 #!/usr/bin/perl -Tw
-# $Id: 16arguments.t,v 1.4 2003/06/03 22:50:46 ian Exp $
+# $Id: 16arguments.t,v 1.5 2003/06/14 02:03:12 ian Exp $
 
 # arguments.t
 #
 # Ensure the arguments() function works correctly.
 
 use strict;
-use Test::More	qw( no_plan );
+use Test::More	tests => 27;
 use Test::Exception;
 
 # load the Class::Declare module for the argument() method
@@ -49,10 +49,10 @@ lives_ok { Class::Declare->arguments( []    ) } 'array reference lives';
  dies_ok { Class::Declare->arguments( [ 1 ] ) } 'odd length array fails';
 
 # ensure arguments() fails if the second argument (if defined) is not
-# a hash reference
- dies_ok { Class::Declare->arguments( [] => 123   ) } 'scalar argument fails';
+# a hash reference, an array reference or a scalar
+lives_ok { Class::Declare->arguments( [] => 123   ) } 'scalar argument fails';
  dies_ok { Class::Declare->arguments( [] => \12   ) } 'scalar reference fails';
- dies_ok { Class::Declare->arguments( [] => []    ) } 'array reference fails';
+lives_ok { Class::Declare->arguments( [] => []    ) } 'array reference fails';
  dies_ok { Class::Declare->arguments( [] => sub{} ) } 'code reference fails';
 lives_ok { Class::Declare->arguments( [] => {}    ) } 'hash reference lives';
 
@@ -81,3 +81,17 @@ ok( ! defined $hash->{ a } , 'passed undefined argument values honoured' );
 # ensure unknown arguments are OK when we don't specify defaults
 lives_ok { Class::Declare->arguments( [ b => 2 ] => undef ) }
          'unknown arguments are OK without defaults';
+
+# ensure a scalar default argument is mapped to an argument name
+	$hash	= Class::Declare->arguments( [] => 'a' );
+ok(   defined $hash        , "scalar default arguments accepted" );
+ok(    exists $hash->{ a } , "scalar default mepped to argument" );
+ok( ! defined $hash->{ a } , "scalar default mepped to argument" );
+
+# ensure a list reference default argument is mapped to argument names
+	$hash	= Class::Declare->arguments( [] => [ qw( a b ) ] );
+ok(   defined $hash        , "array reference default arguments accepted" );
+ok(    exists $hash->{ a } , "array reference default mapped to arugment" );
+ok(    exists $hash->{ b } , "array reference default mapped to arugment" );
+ok( ! defined $hash->{ a } , "array reference default mapped to arugment" );
+ok( ! defined $hash->{ b } , "array reference default mapped to arugment" );
