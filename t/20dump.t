@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 20dump.t,v 1.14 2003/06/06 13:50:22 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 20dump.t,v 1.15 2003/06/17 06:04:24 ian Exp $
 
 # dump.t
 #

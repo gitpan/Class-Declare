@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 11protected.t,v 1.5 2003/06/03 22:50:46 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 11protected.t,v 1.6 2003/06/17 06:04:24 ian Exp $
 
 # protected.t
 #

@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 17storable.t,v 1.7 2003/06/14 01:41:56 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 17storable.t,v 1.8 2003/06/17 06:04:24 ian Exp $
 
 # storable.t
 #

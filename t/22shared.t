@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 22shared.t,v 1.2 2003/06/06 13:52:04 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 22shared.t,v 1.3 2003/06/17 06:04:24 ian Exp $
 
 # shared.t
 #

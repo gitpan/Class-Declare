@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 08restricted.t,v 1.7 2003/06/06 10:42:42 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 08restricted.t,v 1.8 2003/06/17 06:04:24 ian Exp $
 
 # restricted.t
 #

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.48 2003/06/15 19:35:22 ian Exp $
+# $Id: Declare.pm,v 1.49 2003/06/17 06:03:54 ian Exp $
 package Class::Declare;
 
 use strict;
@@ -76,8 +76,8 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION	= '0.03';
-			 $REVISION	= '$Revision: 1.48 $';
+             $VERSION	= '0.04';
+			 $REVISION	= '$Revision: 1.49 $';
 
 # declare the read-write and read-only methods for export
 @EXPORT_OK		= qw( rw ro );
@@ -1537,23 +1537,29 @@ sub STORABLE_freeze : locked
 
 			# now store the coderef in %__CODEREFS__: use the package, attribute
 			# and CODEREF itself as the key
-			my	$key					= join '=' , ref( $self ) , $_
+			my	$ref					= join '=' , ref( $self ) , $_
 			  	    					           , $value       , $key;
-				$__CODEREFS__{ $key }	= $value;
+				$__CODEREFS__{ $ref }	= $value;
 
 			# replace the original CODEREF with the key
-				$hash->{ $_ }			= $key;
+				$hash->{ $_ }			= $ref;
 			# make note of the fact that this attribute has had it's value
 			# stashed in the CODEREFs storage
 				push @{ $code } , $_;
 		}
 	}
 
-	# return the object index and the object hash to serialise
-	# as well as the list of attributes whose values are CODEREFs and who
-	# have had these CODEREFs "serialised" in memory
-	return ( defined $code ) ? ( $key , $hash , $code )
-	                         : ( $key , $hash         );
+	# return the object hash to serialise as well as the list of attributes
+	# whose values are CODEREFs and who have had these CODEREFs "serialised"
+	# in memory - we don't worry about the object key since we need to
+	# ensure the key is unique at all times, so we'll generate a new one
+	# when we thaw out the object
+	#   NB: we prefix the return value with '' since the first return value
+	#       is expected to be serialized already. we could send back the
+	#       object key (index into %__OBJECTS__) but as we have no need for
+	#       it when we thaw we minimize the freezing computations by sending
+	#       an empty string, rather than the key
+	return ( defined $code ) ? ( '' , $hash , $code ) : ( '' , $hash );
 } # STORABLE_freeze()
 
 
@@ -1578,9 +1584,10 @@ sub STORABLE_thaw : locked
 			    . "at $file line $line\n";
 		};
 
-	# OK, @ref should contain the index of the object and a reference
-	# to a hash representing the object
-	my	( $key , $hash , $code )	= @_;
+	# OK, @ref should contain a reference to a hash representing the object
+	# as well as a reference to an array of attributes whose values are
+	# CODEREFs, and are therefore contained in the %__CODEREFS__ hash
+	my	( undef , $hash , $code )	= @_;
 	( ref $hash eq 'HASH' )
 		or do {
 			my	( undef , $file , $line , $sub )	= caller 0;
@@ -1590,24 +1597,16 @@ sub STORABLE_thaw : locked
 				. "\t(HASH reference expected, got $hash)\n";
 		};
 
-	# if this slot has been taken, then create a new index from the address
-	# of the new hash
-	( exists $__OBJECTS__{ $key } )
-		and ( $key )	= ( $hash =~ m#0x([a-f\d]+)#o );
+	# generate the new object key from the address of the object hash
+	my	( $key )	= ( $hash =~ m#0x([a-f\d]+)#o );
 
 	# if we have code references stored in memory and we're cloning,
 	# then attempt to retrieve them
 	if ( $cloning && defined $code ) {
 		foreach ( @{ $code } ) {
 			# extract the reference (delete it so that it doesn't consume
-			# space ... this will lead to problems if thawing isn't part of
-			# a freeze/thaw pair - i.e. cloning - but it's not designed to
-			# be robust, just to handle object cloning
-			my	$key			= $hash->{ $_ };
-			my	$ref			= delete $__CODEREFS__{ $key };
-
-			# now store the CODEREF as the attribute value
-				$hash->{ $_ }	= $ref;
+			# space ... i.e. a possible memory leak)
+			$hash->{ $_ }		= delete $__CODEREFS__{ $hash->{ $_ } };
 		}
 	}
 
@@ -2036,7 +2035,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.48 $';
+               $REVISION = '$Revision: 1.49 $';
 
   ...
 

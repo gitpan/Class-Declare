@@ -1,5 +1,8 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.9 2003/06/16 11:28:28 ian Exp $
+$Id: Changes,v 1.10 2003/06/17 06:06:47 ian Exp $
+
+0.05	Tue Jun 17 06:05:07 2003
+	- fixed possible key collision in freeze/thaw of Class::Declare objects
 
 0.04	Mon Jun 16 11:24:21 2003
 	- fixed Makefile.PL dependency to require Test::Exception 0.15 or

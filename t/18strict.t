@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 18strict.t,v 1.5 2003/06/06 10:42:42 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 18strict.t,v 1.6 2003/06/17 06:04:24 ian Exp $
 
 # strict.t
 #

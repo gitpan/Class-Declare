@@ -1,5 +1,5 @@
-#!/usr/bin/perl -Tw
-# $Id: 10private.t,v 1.7 2003/06/03 22:50:46 ian Exp $
+#!/usr/bin/perl -w
+# $Id: 10private.t,v 1.8 2003/06/17 06:04:24 ian Exp $
 
 # private.t
 #
