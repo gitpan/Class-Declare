@@ -1,5 +1,9 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.8 2003/06/15 19:23:08 ian Exp $
+$Id: Changes,v 1.9 2003/06/16 11:28:28 ian Exp $
+
+0.04	Mon Jun 16 11:24:21 2003
+	- fixed Makefile.PL dependency to require Test::Exception 0.15 or
+	  greater (we need lives_and())
 
 0.03	Sun Jun 15 19:22:36 2003
 	- changed underlying object store from list of hashes to hash of hashes
