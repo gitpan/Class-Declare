@@ -1,5 +1,5 @@
 #!/usr/bin/perl -Tw
-# $Id: 05test.t,v 1.4 2003/06/03 22:50:46 ian Exp $
+# $Id: 05test.t,v 1.5 2003/06/06 10:42:42 ian Exp $
 
 # test.t
 #
@@ -20,25 +20,31 @@ my	$tests	= [];
 my	$test;
 
 # create a class instance
-lives_ok { Class::Declare::Test->new( tests => $tests  , type => 'class' ) }
+lives_ok { Class::Declare::Test->new( tests => $tests  ,
+                                      type  => 'class' ) }
          'class test object creation succeeded';
 
 # create a static instance
-lives_ok { Class::Declare::Test->new( tests => $tests  , type => 'static' ) }
+lives_ok { Class::Declare::Test->new( tests => $tests  ,
+                                      type  => 'static' ) }
          'static test object creation succeeded';
 
-# create a shared instance
-lives_ok { Class::Declare::Test->new( tests => $tests  , type => 'shared' ) }
-         'shared test object creation succeeded';
+# create a restricted instance
+lives_ok { Class::Declare::Test->new( tests => $tests  ,
+                                      type  => 'restricted' ) }
+         'restricted test object creation succeeded';
 
 # create a public instance
-lives_ok { Class::Declare::Test->new( tests => $tests  , type => 'public' ) }
+lives_ok { Class::Declare::Test->new( tests => $tests  ,
+                                      type  => 'public' ) }
          'public test object creation succeeded';
 
 # create a private instance
-lives_ok { Class::Declare::Test->new( tests => $tests  , type => 'private' ) }
+lives_ok { Class::Declare::Test->new( tests => $tests  ,
+                                      type  => 'private' ) }
          'private test object creation succeeded';
 
 # create a protected instance
-lives_ok { Class::Declare::Test->new( tests => $tests  , type => 'protected' ) }
+lives_ok { Class::Declare::Test->new( tests => $tests  ,
+                                      type  => 'protected' ) }
          'protected test object creation succeeded';

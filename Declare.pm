@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.34 2003/06/04 01:46:32 ian Exp $
+# $Id: Declare.pm,v 1.37 2003/06/06 12:18:29 ian Exp $
 package Class::Declare;
 
 use strict;
@@ -19,18 +19,18 @@ and methods.
   use warnings;
   use base qw( Class::Declare );
 
-  __PACKAGE__->declare( public    => { public_attr    => 42         } ,
-                        private   => { private_attr   => 'Foo'      } ,
-                        protected => { protected_attr => 'Bar'      } ,
-                        class     => { class_attr     => [ 3.141 ]  }
-                        static    => { static_attr    => { a => 1 } } ,
-                        shared    => { shared_attr    => \'string'  } ,
-                        friends   => 'main::trustedsub'               ,
-                        init      => sub { # object initialisation
+  __PACKAGE__->declare( public     => { public_attr     => 42         } ,
+                        private    => { private_attr    => 'Foo'      } ,
+                        protected  => { protected_attr  => 'Bar'      } ,
+                        class      => { class_attr      => [ 3.141 ]  }
+                        static     => { static_attr     => { a => 1 } } ,
+                        restricted => { restricted_attr => \'string'  } ,
+                        friends    => 'main::trustedsub'                ,
+                        init       => sub { # object initialisation
                                         ...
                                         1;
-                                     }                                ,
-                        strict    => 0
+                                      }                                 ,
+                        strict     => 0
                       );
 
   sub publicmethod {
@@ -58,8 +58,8 @@ and methods.
     ...
   }
 
-  sub sharedmethod {
-    my $self = __PACKAGE__->shared( shift );
+  sub restrictedmethod {
+    my $self = __PACKAGE__->restricted( shift );
     ...
   }
 
@@ -76,10 +76,10 @@ use base qw( Exporter           );
 use vars qw/ $VERSION $REVISION /;
 
 # the version of this module
-             $VERSION	= '0.01';
-			 $REVISION	= '$Revision: 1.34 $';
+             $VERSION	= '0.02';
+			 $REVISION	= '$Revision: 1.37 $';
 
-# use Storable fo deep-cloning of Class::Declare objects
+# use Storable for deep-cloning of Class::Declare objects
 use Storable;
 
 
@@ -127,8 +127,8 @@ control over how their modules may be accessed. The standard object oriented
 programming concepts of I<public>, I<private> and I<protected> have been
 implemented for both class and instance (or object) attributes and methods.
 
-Attributes and methods are either I<class> or I<instance> attributes and
-methods, depending on whether they may be invoked via class instances (class
+Attributes and methods belong to either the I<class> or an I<instance> 
+depending on whether they may be invoked via class instances (class
 and instance methods/attributes), or via classes (class methods/attributes
 only).
 
@@ -158,7 +158,14 @@ and it's instances, and classes and objects derived from the defining
 class. Protected attributes and methods are used to define the interface for
 extending a given class (through normal inheritance/derivation). The term
 B<protected> is used to refer to protected instance methods and attributes,
-while protected class methods and attributes are referred to as B<shared>.
+while protected class methods and attributes are referred to as B<restricted>.
+
+B<Note:> since version 0.02, protected class methods and attributes are
+refered to as I<restricted>, rather than I<shared>. This change was brought
+about by the introduction of L<Class::Declare::Attributes> and then clash
+with the existing Perl threading attribute B<:shared>. The term I<restricted>
+has been chosen to reflect that the use of these methods and attributes is
+restricted to the family of classes derived from the base class.
 
 =back
 
@@ -181,13 +188,13 @@ represented by C<$self>), as well as the I<context> of the invocation (where
 was the call made and who made it, determined by examining the L<caller>()
 stack). This adds an unfortunate but necessary processing overhead for
 B<Class::Declare> objects for each method and attribute access. While this
-overhead has been kept as low as possible, it may be desirable to turn
-this checking off in a production environment. B<Class::Declare> permits
-disabling of the access control checks on a per-module basis, which may
-greatly improve the performance of an application.  Refer to the I<strict>
-parameter of B<declare()> below for more information.
+overhead has been kept as low as possible, it may be desirable to turn it
+off in a production environment. B<Class::Declare> permits disabling of
+the access control checks on a per-module basis, which may greatly improve
+the performance of an application.  Refer to the I<strict> parameter of
+B<declare()> below for more information.
 
-B<Class::Declare> inherites from L<Exporter>, so modules derived from
+B<Class::Declare> inherits from L<Exporter>, so modules derived from
 B<Class::Declare> can use the standard symbol export mechanisms. See
 L<Exporter> for more information.
 
@@ -215,9 +222,10 @@ B<Class::Declare::declare()> is a class method of B<Class::Declare> and has the 
 
 =item B<declare(> [ I<param> => I<value> ] B<)>
 
-Declare the class, specifying attributes, the constructor, friend methods
-and classes, as well as controlling the application of strict access
-checking. I<param> may have one of the following values:
+B<declare()>'s primary task is to define the attributes of the class
+and its instances. In addition, it supports options for defining object
+initialisation code, friend methods and classes, and the application of
+strict access checking. I<param> may have one of the following values:
 
 =over 4
 
@@ -289,24 +297,24 @@ As with I<class> attributes, except access to C<static> attributes is
 limited to the defining class and its objects. I<static> attributes are the
 class-equivalent of I<private> instance attributes. See also I<friends>.
 
-=item I<shared>
+=item I<restricted>
 
-As with I<class> attributes, except access to C<shared> attributes is limited
-to the defining class and all classes that inherit from the defining class,
-and their respective objects.  I<shared> attributes are the class-equivalent
-of I<protected> instance attributes. See also I<friends>.
+As with I<class> attributes, except access to C<restricted> attributes is
+limited to the defining class and all classes that inherit from the defining
+class, and their respective objects.  I<restricted> attributes are the
+class-equivalent of I<protected> instance attributes. See also I<friends>.
 
 =item I<friends>
 
 Here you may specify classes and methods that may be granted access to the
-defining classes I<private>, I<protected>, I<static> and I<shared> attributes
-and methods. I<friends> expects either a single value, or a reference to a
-list of values. These values may either be class names, or fully-qualified
-method names (i.e. class and method name). When a call is made to a private
-or protected method or attribute accessor, and a friend has been declared,
-a check is performed to see if the caller is within a friend package or is a
-friend method. If so, access is granted. Otherwise, access is denied through
-a call to B<die()>.
+defining classes I<private>, I<protected>, I<static> and I<restricted>
+attributes and methods. I<friends> expects either a single value, or a
+reference to a list of values. These values may either be class names, or
+fully-qualified method names (i.e. class and method name). When a call is
+made to a private or protected method or attribute accessor, and a friend
+has been declared, a check is performed to see if the caller is within a
+friend package or is a friend method. If so, access is granted. Otherwise,
+access is denied through a call to B<die()>.
 
 Note that friend status may not be inherited. This is to avoid scenarios
 such as the following:
@@ -364,10 +372,10 @@ routines to be accessible outside of B<new()>.
 =item I<strict>
 
 If I<strict> is set to I<true>, then B<Class::Declare> will define B<class()>,
-B<static()>, B<shared()>, B<public()>, B<private()>, and B<protected()>
+B<static()>, B<restricted()>, B<public()>, B<private()>, and B<protected()>
 methods (see L</Class Methods> and L</Object Methods> below) within the
-current package that enforce the class/static/shared/public/private/protected
-relationships in method calls.
+current package that enforce the
+class/static/restricted/public/private/protected relationships in method calls.
 
 If I<strict> is set to I<false> and defined (e.g. 0, not C<undef>), then
 B<Class::Declare> will convert the above method calls to no-ops, and no
@@ -532,15 +540,15 @@ sub declare : locked
 				. $__DECL__{ $class }->{ line } . ")\n";
 
 	# make sure we have a valid set of arguments
-	my	$_args	= __PACKAGE__->arguments( \@_ => { public    => undef ,
-	  	      	                                   private   => undef ,
-	  	      	                                   protected => undef ,
-	  	      	                                   class     => undef ,
-	  	      	                                   static    => undef ,
-	  	      	                                   shared    => undef ,
-	  	      	                                   init      => undef ,
-	  	      	                                   strict    => undef ,
-	  	      	                                   friends   => undef } );
+	my	$_args	= __PACKAGE__->arguments( \@_ => { public     => undef ,
+	  	      	                                   private    => undef ,
+	  	      	                                   protected  => undef ,
+	  	      	                                   class      => undef ,
+	  	      	                                   static     => undef ,
+	  	      	                                   restricted => undef ,
+	  	      	                                   init       => undef ,
+	  	      	                                   strict     => undef ,
+	  	      	                                   friends    => undef } );
 
 	# ensure the init argument is undefined or is a code ref
 	( ! defined $_args->{ init } || ref( $_args->{ init } ) eq 'CODE' )
@@ -657,7 +665,7 @@ sub declare : locked
 								my	$self	= $class->$type( shift , $glob );
 
 								return $ref->{ $method };
-							}; # new class/static/shared method
+							}; # new class/static/restricted method
 					}
 				}
 
@@ -724,7 +732,8 @@ sub declare : locked
 	# keep a record of the attributes of this class, making note of the type
 	# of each attribute as well
 	$__TYPE__{ $class }	= {};
-	foreach my $type ( qw( class static shared public private protected ) ) {
+	foreach my $type ( qw( class  static  restricted
+	                       public private protected  ) ) {
 		# do we have attributes of this type for this class?
 		if ( my	@attr = keys %{ $_args->{ $type } } ) {
 			$__ATTR__{ $class }->{ $type }	= \@attr;
@@ -949,12 +958,12 @@ sub new : locked
 =head2 Class Access Control Methods
 
 B<Class::Declare> provides the following class methods for implementing
-I<class>, I<static> and I<shared> access control in class methods. These
+I<class>, I<static> and I<restricted> access control in class methods. These
 methods may be called either through a B<Class::Declare>-derived class,
 or an instance of such a class.
 
 Note that a I<class> method is a I<public> class method, a I<static> method
-is a I<private> class method, and a I<shared> method is a I<protected>
+is a I<private> class method, and a I<restricted> method is a I<protected>
 class method.
 
 
@@ -989,7 +998,7 @@ sub class
 } # class()
 
 
-=item B<static(>i I<target> B<)>
+=item B<static(> I<target> B<)>
 
 Ensure a method is called as a static method of this package via I<target>.
 
@@ -1038,24 +1047,30 @@ sub static
 } # static()
 
 
-=item B<shared(> I<target> B<)>
+=item B<restricted(> I<target> B<)>
 
-Ensure a method is called as a shared method of this package via I<target>.
+Ensure a method is called as a restricted method of this package via I<target>.
 
-  sub mysharedsub {
-    my $self = __PACKAGE__->shared( shift );
+  sub myrestrictedsub {
+    my $self = __PACKAGE__->restricted( shift );
     ...
   }
 
-A I<shared> method may only be called from within the defining class or a
+A I<restricted> method may only be called from within the defining class or a
 class that inherits from the defining class, and I<target> must inherit from
-this class (either an object or instance).  If B<shared()> is not invoked
-in this manner, then B<shared()> will B<die()> with an error.
+this class (either an object or instance).  If B<restricted()> is not invoked
+in this manner, then B<restricted()> will B<die()> with an error.
 
 See also the I<strict> and I<friends> parameters for B<declare()> above.
 
+B<Note:> B<restricted()> was called B<shared()> in the first release of
+B<Class::Declare>. However, with the advent of L<Class::Declare::Attributes>,
+there was a clash between the use of B<:shared> as an attribute by
+L<Class::Declare::Attributes>, and the Perl use of B<:shared> attributes
+for threading.
+
 =cut
-sub shared
+sub restricted
 {
 	# extract the caller context
 	my	( $pkg , $file , $line , $sub )		= caller 1;
@@ -1083,8 +1098,20 @@ sub shared
 	#     glob is reported by the dynamically instantiated methods
 	#     created by declare()
 		  $sub								= $_[ 2 ] || $sub;
-	die "cannot call shared method $sub() from outside $class "
+	die "cannot call restricted method $sub() from outside $class "
 	    . "sub-class at $file line $line\n";
+} # restricted()
+
+# NB: restricted() used to be shared(), so let's put a stub in place to show
+#     the deprecation of shared()
+sub shared
+{
+	# determine where we were called from
+	my	( undef , $file , $line )		= caller 0;
+
+	# show that shared() is no longer supported and die
+	die __PACKAGE__ . '::shared() has been deprecated - see ' .
+	    __PACKAGE__ ."'::restricted() instead (at $file line $line)\n";
 } # shared()
 
 
@@ -1461,9 +1488,9 @@ Returns I<true> if the calling class or method is a friend of the given class
 or object. That is, for a given object or class, B<friend()> will return
 I<true> if it is called within the context of a class or method that has been
 granted friend status by the object or class (see I<friend> in B<declare()>
-above). A friend may access I<private>, I<protected>, I<static> and I<shared>
-methods and attributes of a class and it's instances, but not of derived
-classes.
+above). A friend may access I<private>, I<protected>, I<static> and
+I<restricted> methods and attributes of a class and it's instances, but not
+of derived classes.
 
 B<friend()> will return true for a given class or object if called within
 that class. That is, a class is always it's own friend.
@@ -1550,9 +1577,9 @@ been requested then C<undef> is returned.
 
 As with I<class>, but displaying I<static> attributes and their values.
 
-=item I<shared>
+=item I<restricted>
 
-As with I<class>, but displaying I<shared> attributes and their values.
+As with I<class>, but displaying I<restricted> attributes and their values.
 
 =item I<public>
 
@@ -1848,7 +1875,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.34 $';
+               $REVISION = '$Revision: 1.37 $';
 
   ...
 
@@ -1923,7 +1950,14 @@ sub has
 {
 	my	$self	= __PACKAGE__->class( shift );
 	# if there's no method name, then raise an error
-	my	$method	= shift			or die 'no method name supplied';
+	my	$method	= shift
+					or do {
+						# find out where we were called from
+						my	( undef , $file , $line )	= caller;
+
+						die "no method name supplied in call to can() "
+						    . "at $file line $line\n";
+					};
 
 	# extract the symbol table entry for this method
 	{
@@ -1967,7 +2001,8 @@ test suite), but patches are always welcome if you discover any problems.
 
 =head1 SEE ALSO
 
-L<Exporter>, L<Storable>, L<Class::Declare::Dump>, L<perlboot>, L<perltoot>.
+L<Class::Declare::Dump>, L<Class::Declare::Attributes>, L<Exporter>,
+L<Storable>, L<perlboot>, L<perltoot>.
 
 
 =head1 AUTHOR

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -Tw
-# $Id: 02declare.t,v 1.6 2003/06/03 22:50:46 ian Exp $
+# $Id: 02declare.t,v 1.7 2003/06/06 13:49:47 ian Exp $
 
 # declare.t
 #
@@ -19,6 +19,7 @@ use Test::Exception;
 lives_ok {
 	package Test::Declare::One;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare();
@@ -30,6 +31,7 @@ lives_ok {
 dies_ok {
 	package Test::Declare::Two;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare();
@@ -42,15 +44,18 @@ dies_ok {
 lives_ok {
 	package Test::Declare::Three;
 
+	use strict;
 	use base qw( Class::Declare );
 
-	__PACKAGE__->declare( public    => undef ,
-	                      private   => undef ,
-	                      protected => undef ,
-	                      class     => undef ,
-	                      init      => undef ,
-	                      strict    => undef ,
-	                      friends   => undef );
+	__PACKAGE__->declare( public     => undef ,
+	                      private    => undef ,
+	                      protected  => undef ,
+	                      class      => undef ,
+	                      static     => undef ,
+	                      restricted => undef ,
+	                      init       => undef ,
+	                      strict     => undef ,
+	                      friends    => undef );
 	1;
 } 'valid arguments to declare() OK';
 
@@ -58,6 +63,7 @@ lives_ok {
 dies_ok {
 	package Test::Declare::Four;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare( foo => undef );
@@ -74,6 +80,7 @@ dies_ok {
 dies_ok {
 	package Test::Declare::Five;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare( public => { protected => undef } );
@@ -84,6 +91,7 @@ dies_ok {
 dies_ok {
 	package Test::Declare::Six;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare( class  => { private   => undef } );
@@ -95,6 +103,7 @@ dies_ok {
 dies_ok {
 	package Test::Declare::Seven;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare( public  => { attribute => undef } ,
@@ -107,6 +116,7 @@ dies_ok {
 lives_ok {
 	package Test::Declare::Eight;
 
+	use strict;
 	use base qw( Class::Declare );
 
 	__PACKAGE__->declare( static => { attribute => sub { rand } } );

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -Tw
-# $Id: 21clone.t,v 1.4 2003/06/03 22:50:46 ian Exp $
+# $Id: 21clone.t,v 1.5 2003/06/06 10:42:42 ian Exp $
 
 # clone.t
 #
@@ -17,12 +17,12 @@ use strict;
 use base qw( Class::Declare );
 
 # declare all types of attributes
-__PACKAGE__->declare( class     => { my_class     => \1 } ,
-                      static    => { my_static    => \2 } ,
-					  shared    => { my_shared    => \3 } ,
-					  public    => { my_public    => \4 } ,
-					  private   => { my_private   => \5 } ,
-					  protected => { my_protected => \6 } );
+__PACKAGE__->declare( class      => { my_class      => \1 } ,
+                      static     => { my_static     => \2 } ,
+					  restricted => { my_restricted => \3 } ,
+					  public     => { my_public     => \4 } ,
+					  private    => { my_private    => \5 } ,
+					  protected  => { my_protected  => \6 } );
 
 # define methods for comparing class and instance attributes
 sub cmp_class
@@ -70,7 +70,7 @@ ok( ref( $clone ) eq ref( $object ) ,
 #   - start with the class attributes
 ok( $class->cmp_class( "my_" . $_ , $object , $clone ) ,
     "$_ attributes cloned correctly" )
-		foreach ( qw( class static shared ) );
+		foreach ( qw( class static restricted ) );
 
 #   - now the object attributes
 ok( $class->cmp_instance( "my_" . $_ , $object , $clone ) ,
@@ -90,12 +90,12 @@ use base qw( Class::Declare );
 use constant	RANDOM	=> rand;
 
 # declare all types of attributes
-__PACKAGE__->declare( class     => { my_class     => sub { RANDOM + 1 } } ,
-                      static    => { my_static    => sub { RANDOM + 2 } } ,
-					  shared    => { my_shared    => sub { RANDOM + 3 } } ,
-					  public    => { my_public    => sub { RANDOM + 4 } } ,
-					  private   => { my_private   => sub { RANDOM + 5 } } ,
-					  protected => { my_protected => sub { RANDOM + 6 } } );
+__PACKAGE__->declare( class      => { my_class      => sub { RANDOM + 1 } } ,
+                      static     => { my_static     => sub { RANDOM + 2 } } ,
+					  restricted => { my_restricted => sub { RANDOM + 3 } } ,
+					  public     => { my_public     => sub { RANDOM + 4 } } ,
+					  private    => { my_private    => sub { RANDOM + 5 } } ,
+					  protected  => { my_protected  => sub { RANDOM + 6 } } );
 
 # define methods for comparing class and instance attributes
 sub cmp
@@ -132,7 +132,7 @@ ok( ref( $clone ) eq ref( $object ) ,
 #   - start with the class attributes
 ok( $class->cmp( "my_" . $_ , $object , $clone ) ,
     "$_ attributes cloned correctly" )
-		foreach ( qw( class static shared ) );
+		foreach ( qw( class static restricted ) );
 
 #   - now the object attributes
 ok( $class->cmp( "my_" . $_ , $object , $clone ) ,
@@ -160,7 +160,7 @@ ok( ref( $clone ) eq ref( $object ) ,
 #   - start with the class attributes
 ok( $class->cmp_class( "my_" . $_ , $object , $clone ) ,
     "$_ attributes cloned correctly" )
-		foreach ( qw( class static shared ) );
+		foreach ( qw( class static restricted ) );
 
 #   - now the object attributes (except the public attribute)
 ok( $class->cmp_instance( "my_" . $_ , $object , $clone ) ,
@@ -203,7 +203,7 @@ ok( ref( $clone ) eq ref( $object ) ,
 #   - start with the class attributes
 ok( $class->cmp_class( "my_" . $_ , $object , $clone ) ,
     "$_ attributes cloned correctly" )
-		foreach ( qw( class static shared ) );
+		foreach ( qw( class static restricted ) );
 
 #   - now the object attributes (except the public attribute)
 ok( $class->cmp_instance( "my_" . $_ , $object , $clone ) ,

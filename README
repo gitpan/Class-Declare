@@ -1,4 +1,4 @@
-$Id: README,v 1.6 2003/06/04 00:55:17 ian Exp $
+$Id: README,v 1.8 2003/06/06 12:18:29 ian Exp $
 
 NAME
     Class::Declare - Declare classes with public, private and protected
@@ -11,18 +11,18 @@ SYNOPSIS
       use warnings;
       use base qw( Class::Declare );
 
-      __PACKAGE__->declare( public    => { public_attr    => 42         } ,
-                            private   => { private_attr   => 'Foo'      } ,
-                            protected => { protected_attr => 'Bar'      } ,
-                            class     => { class_attr     => [ 3.141 ]  }
-                            static    => { static_attr    => { a => 1 } } ,
-                            shared    => { shared_attr    => \'string'  } ,
-                            friends   => 'main::trustedsub'               ,
-                            init      => sub { # object initialisation
+      __PACKAGE__->declare( public     => { public_attr     => 42         } ,
+                            private    => { private_attr    => 'Foo'      } ,
+                            protected  => { protected_attr  => 'Bar'      } ,
+                            class      => { class_attr      => [ 3.141 ]  }
+                            static     => { static_attr     => { a => 1 } } ,
+                            restricted => { restricted_attr => \'string'  } ,
+                            friends    => 'main::trustedsub'                ,
+                            init       => sub { # object initialisation
                                             ...
                                             1;
-                                         }                                ,
-                            strict    => 0
+                                          }                                 ,
+                            strict     => 0
                           );
 
       sub publicmethod {
@@ -50,8 +50,8 @@ SYNOPSIS
         ...
       }
 
-      sub sharedmethod {
-        my $self = __PACKAGE__->shared( shift );
+      sub restrictedmethod {
+        my $self = __PACKAGE__->restricted( shift );
         ...
       }
 
@@ -128,10 +128,10 @@ DESCRIPTION
     implemented for both class and instance (or object) attributes and
     methods.
 
-    Attributes and methods are either *class* or *instance* attributes and
-    methods, depending on whether they may be invoked via class instances
-    (class and instance methods/attributes), or via classes (class
-    methods/attributes only).
+    Attributes and methods belong to either the *class* or an *instance*
+    depending on whether they may be invoked via class instances (class and
+    instance methods/attributes), or via classes (class methods/attributes
+    only).
 
     Class::Declare uses the following definitions for *public*, *private*
     and *protected*:
@@ -157,7 +157,15 @@ DESCRIPTION
         to define the interface for extending a given class (through normal
         inheritance/derivation). The term protected is used to refer to
         protected instance methods and attributes, while protected class
-        methods and attributes are referred to as shared.
+        methods and attributes are referred to as restricted.
+
+        Note: since version 0.02, protected class methods and attributes are
+        refered to as *restricted*, rather than *shared*. This change was
+        brought about by the introduction of Class::Declare::Attributes and
+        then clash with the existing Perl threading attribute :shared. The
+        term *restricted* has been chosen to reflect that the use of these
+        methods and attributes is restricted to the family of classes
+        derived from the base class.
 
     The separation of terms for class and instance methods and attributes
     has been adopted to simplify class declarations. See declare() below.
@@ -180,13 +188,13 @@ DESCRIPTION
     examining the caller() stack). This adds an unfortunate but necessary
     processing overhead for Class::Declare objects for each method and
     attribute access. While this overhead has been kept as low as possible,
-    it may be desirable to turn this checking off in a production
-    environment. Class::Declare permits disabling of the access control
-    checks on a per-module basis, which may greatly improve the performance
-    of an application. Refer to the *strict* parameter of declare() below
-    for more information.
+    it may be desirable to turn it off in a production environment.
+    Class::Declare permits disabling of the access control checks on a
+    per-module basis, which may greatly improve the performance of an
+    application. Refer to the *strict* parameter of declare() below for more
+    information.
 
-    Class::Declare inherites from Exporter, so modules derived from
+    Class::Declare inherits from Exporter, so modules derived from
     Class::Declare can use the standard symbol export mechanisms. See
     Exporter for more information.
 
@@ -211,10 +219,11 @@ DESCRIPTION
     the following call syntax and behaviour:
 
     declare( [ *param* => *value* ] )
-        Declare the class, specifying attributes, the constructor, friend
-        methods and classes, as well as controlling the application of
-        strict access checking. *param* may have one of the following
-        values:
+        declare()'s primary task is to define the attributes of the class
+        and its instances. In addition, it supports options for defining
+        object initialisation code, friend methods and classes, and the
+        application of strict access checking. *param* may have one of the
+        following values:
 
         *public*
             *public* expects a hash reference of attribute names and default
@@ -285,24 +294,24 @@ DESCRIPTION
             attributes are the class-equivalent of *private* instance
             attributes. See also *friends*.
 
-        *shared*
-            As with *class* attributes, except access to "shared" attributes
-            is limited to the defining class and all classes that inherit
-            from the defining class, and their respective objects. *shared*
-            attributes are the class-equivalent of *protected* instance
-            attributes. See also *friends*.
+        *restricted*
+            As with *class* attributes, except access to "restricted"
+            attributes is limited to the defining class and all classes that
+            inherit from the defining class, and their respective objects.
+            *restricted* attributes are the class-equivalent of *protected*
+            instance attributes. See also *friends*.
 
         *friends*
             Here you may specify classes and methods that may be granted
             access to the defining classes *private*, *protected*, *static*
-            and *shared* attributes and methods. *friends* expects either a
-            single value, or a reference to a list of values. These values
-            may either be class names, or fully-qualified method names (i.e.
-            class and method name). When a call is made to a private or
-            protected method or attribute accessor, and a friend has been
-            declared, a check is performed to see if the caller is within a
-            friend package or is a friend method. If so, access is granted.
-            Otherwise, access is denied through a call to die().
+            and *restricted* attributes and methods. *friends* expects
+            either a single value, or a reference to a list of values. These
+            values may either be class names, or fully-qualified method
+            names (i.e. class and method name). When a call is made to a
+            private or protected method or attribute accessor, and a friend
+            has been declared, a check is performed to see if the caller is
+            within a friend package or is a friend method. If so, access is
+            granted. Otherwise, access is denied through a call to die().
 
             Note that friend status may not be inherited. This is to avoid
             scenarios such as the following:
@@ -361,11 +370,11 @@ DESCRIPTION
 
         *strict*
             If *strict* is set to *true*, then Class::Declare will define
-            class(), static(), shared(), public(), private(), and
+            class(), static(), restricted(), public(), private(), and
             protected() methods (see "Class Methods" and "Object Methods"
             below) within the current package that enforce the
-            class/static/shared/public/private/protected relationships in
-            method calls.
+            class/static/restricted/public/private/protected relationships
+            in method calls.
 
             If *strict* is set to *false* and defined (e.g. 0, not "undef"),
             then Class::Declare will convert the above method calls to
@@ -486,12 +495,12 @@ DESCRIPTION
 
   Class Access Control Methods
     Class::Declare provides the following class methods for implementing
-    *class*, *static* and *shared* access control in class methods. These
-    methods may be called either through a Class::Declare-derived class, or
-    an instance of such a class.
+    *class*, *static* and *restricted* access control in class methods.
+    These methods may be called either through a Class::Declare-derived
+    class, or an instance of such a class.
 
     Note that a *class* method is a *public* class method, a *static* method
-    is a *private* class method, and a *shared* method is a *protected*
+    is a *private* class method, and a *restricted* method is a *protected*
     class method.
 
     class( *target* )
@@ -510,7 +519,7 @@ DESCRIPTION
 
         See also the *strict* parameter for declare() above.
 
-    static(i *target* )
+    static( *target* )
         Ensure a method is called as a static method of this package via
         *target*.
 
@@ -526,22 +535,28 @@ DESCRIPTION
 
         See also the *strict* and *friends* parameters for declare() above.
 
-    shared( *target* )
-        Ensure a method is called as a shared method of this package via
+    restricted( *target* )
+        Ensure a method is called as a restricted method of this package via
         *target*.
 
-          sub mysharedsub {
-            my $self = __PACKAGE__->shared( shift );
+          sub myrestrictedsub {
+            my $self = __PACKAGE__->restricted( shift );
             ...
           }
 
-        A *shared* method may only be called from within the defining class
-        or a class that inherits from the defining class, and *target* must
-        inherit from this class (either an object or instance). If shared()
-        is not invoked in this manner, then shared() will die() with an
-        error.
+        A *restricted* method may only be called from within the defining
+        class or a class that inherits from the defining class, and *target*
+        must inherit from this class (either an object or instance). If
+        restricted() is not invoked in this manner, then restricted() will
+        die() with an error.
 
         See also the *strict* and *friends* parameters for declare() above.
+
+        Note: restricted() was called shared() in the first release of
+        Class::Declare. However, with the advent of
+        Class::Declare::Attributes, there was a clash between the use of
+        :shared as an attribute by Class::Declare::Attributes, and the Perl
+        use of :shared attributes for threading.
 
   Instance Access Control Methods
     Class::Declare provides the following instance methods for implementing
@@ -636,8 +651,9 @@ DESCRIPTION
         friend() will return *true* if it is called within the context of a
         class or method that has been granted friend status by the object or
         class (see *friend* in declare() above). A friend may access
-        *private*, *protected*, *static* and *shared* methods and attributes
-        of a class and it's instances, but not of derived classes.
+        *private*, *protected*, *static* and *restricted* methods and
+        attributes of a class and it's instances, but not of derived
+        classes.
 
         friend() will return true for a given class or object if called
         within that class. That is, a class is always it's own friend.
@@ -696,9 +712,9 @@ DESCRIPTION
             As with *class*, but displaying *static* attributes and their
             values.
 
-        *shared*
-            As with *class*, but displaying *shared* attributes and their
-            values.
+        *restricted*
+            As with *class*, but displaying *restricted* attributes and
+            their values.
 
         *public*
             As with *class*, but displaying *public* attributes and their
@@ -818,7 +834,7 @@ DESCRIPTION
           use strict;
           use base qw( Class::Declare );
           use vars qw( $REVISION      );
-                       $REVISION = '$Revision: 1.6 $';
+                       $REVISION = '$Revision: 1.8 $';
 
           ...
 
@@ -855,8 +871,14 @@ BUGS
     in the module's test suite), but patches are always welcome if you
     discover any problems.
 
+ACKNOWLEDGEMENTS
+    I would like to thank Matt Robinson <matt@zensunni.org> and Rob Thompson
+	<rob@arcana.co.uk> for early feedback on this module, and in particular
+	to Rob for helping me troubleshoot problems with 64-bit Perl.
+
 SEE ALSO
-    Exporter, Storable, Class::Declare::Dump, perlboot, perltoot.
+	Class::Declare::Dump, Class::Declare::Attributes, Exporter, Storable,
+	perlboot, perltoot.
 
 AUTHOR
     Ian Brayshaw, <ian@onemore.org>
@@ -866,4 +888,3 @@ COPYRIGHT AND LICENSE
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
-

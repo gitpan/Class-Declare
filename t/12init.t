@@ -1,5 +1,5 @@
 #!/usr/bin/perl -Tw
-# $Id: 12init.t,v 1.5 2003/06/03 22:50:46 ian Exp $
+# $Id: 12init.t,v 1.6 2003/06/06 10:42:42 ian Exp $
 
 # init.t
 #
@@ -336,7 +336,7 @@ ok( $object->attribute == 4 ,
 # we need to make sure that init() methods can access public, private,
 # protected, etc attributes and methods
 #   - let's automate this to save on typing
-foreach my $type ( qw( class static shared public private protected ) ) {
+foreach my $type ( qw( class static restricted public private protected ) ) {
 	local	$@;
 
 	# we need to test both attributes and methods
@@ -365,7 +365,7 @@ sub method
 	#     constant
 		\$self->attribute	*= 2		unless (    '$type' eq 'class'
 		                 	    		         || '$type' eq 'static'
-		                 	    		         || '$type' eq 'shared' );
+		                 	    		         || '$type' eq 'restricted' );
 	1;
 } # method()
 

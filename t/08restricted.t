@@ -1,21 +1,21 @@
 #!/usr/bin/perl -Tw
-# $Id: 08shared.t,v 1.6 2003/06/03 22:50:46 ian Exp $
+# $Id: 08restricted.t,v 1.7 2003/06/06 10:42:42 ian Exp $
 
-# shared.t
+# restricted.t
 #
-# Ensure shared methods and attributes are handled correctly.
+# Ensure restricted methods and attributes are handled correctly.
 
 use strict;
 use lib                 	qw( t          );
 use Class::Declare::Test	qw( :constants );
 
 # define the test type
-my	$type	= 'shared';		# testing shared attributes and methods
+my	$type	= 'restricted';		# testing restricted attributes and methods
 
-# shared attributes and methods should only be accessible from within the
-# defining class and instances of that class, as well as in derived
-# classes and their instances, just as with protected attributes and
-# methods, but not confined to class instances.
+# restricted attributes and methods should only be accessible from within the
+# defining class and instances of that class, as well as in derived classes
+# and their instances, just as with protected attributes and methods, but not
+# confined to class instances.
 my	@tests;		undef @tests;
 
 # NB: these are similar to class methods/attributes, in that they are

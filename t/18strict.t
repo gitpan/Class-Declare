@@ -1,5 +1,5 @@
 #!/usr/bin/perl -Tw
-# $Id: 18strict.t,v 1.4 2003/06/03 22:50:46 ian Exp $
+# $Id: 18strict.t,v 1.5 2003/06/06 10:42:42 ian Exp $
 
 # strict.t
 #
@@ -24,7 +24,7 @@ my	@class		= ( TGT_CLASS    , TGT_DERIVED   );
 my	@instance	= ( TGT_INSTANCE , TGT_INHERITED );
 
 # add the class tests
-#   i.e. for class, static and shared attributes and methods
+#   i.e. for class, static and restricted attributes and methods
 my	@ctests;	undef @ctests;
 foreach my $context ( @contexts ) {
 	# the method and attribute behaviours are the same for classes as
@@ -71,7 +71,7 @@ foreach my $context ( @contexts ) {
 
 
 # run the class attribute/method tests
-foreach my $type ( qw( class static shared ) ) {
+foreach my $type ( qw( class static restricted ) ) {
 	# create the test object
 	my	$test	= Class::Declare::Test->new( type   =>  $type   ,
 	  	     	                             tests  => \@ctests ,

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -Tw
-# $Id: 19friend.t,v 1.4 2003/06/03 22:50:46 ian Exp $
+# $Id: 19friend.t,v 1.5 2003/06/06 10:42:42 ian Exp $
 
 # friend.t
 #
@@ -19,14 +19,14 @@ use strict;
 use base qw( Class::Declare );
 
 # define attributes of all the different types
-__PACKAGE__->declare( public    => { a_public    => 1 } ,
-                      private   => { a_private   => 2 } ,
-					  protected => { a_protected => 3 } ,
-					  class     => { a_class     => 4 } ,
-					  static    => { a_static    => 5 } ,
-					  shared    => { a_shared    => 6 } ,
-					  friends   => FRIENDS              ,
-					  strict    => STRICT               );
+__PACKAGE__->declare( public     => { a_public     => 1 } ,
+                      private    => { a_private    => 2 } ,
+					  protected  => { a_protected  => 3 } ,
+					  class      => { a_class      => 4 } ,
+					  static     => { a_static     => 5 } ,
+					  restricted => { a_restricted => 6 } ,
+					  friends    => FRIENDS               ,
+					  strict     => STRICT                );
 
 # define methods of all the different types
 sub m_public {
@@ -54,10 +54,10 @@ sub m_static {
 	return 'e';
 } # m_static()
 
-sub m_shared {
-	my	\$self	= __PACKAGE__->shared( shift );
+sub m_restricted {
+	my	\$self	= __PACKAGE__->restricted( shift );
 	return 'f';
-} # m_shared()
+} # m_restricted()
 
 # declare accessor methods for accessing methods and attributes
 sub call { # object|class , method|attribute
@@ -245,11 +245,11 @@ sub dispatch
 } # dispatch()
 
 # define the accessor methods to call on classes
-my	@ctargets	= qw( a_class  a_static  a_shared
-  	         	      m_class  m_static  m_shared    );
+my	@ctargets	= qw( a_class  a_static  a_restricted
+  	         	      m_class  m_static  m_restricted );
 # define the accessor methods to call on instances
 my	@itargets	= qw( a_public a_private a_protected
-  	         	      m_public m_private m_protected );
+  	         	      m_public m_private m_protected  );
 
 # OK, check to make sure the friendship of Test::Friend::Three is
 # honoured by Test::Friend::One
@@ -413,7 +413,7 @@ foreach my $caller ( 'Test::Friend::Two' , Test::Friend::Two->new ) {
 		         "normal inherited $target behaviour honoured";
 
 		# now test the non-inherited dispatch() method
-		if ( $target =~ m/class$/o || $target =~ m/shared$/o ) {
+		if ( $target =~ m/class$/o || $target =~ m/restricted$/o ) {
 			lives_ok { $caller->dispatch( $object => $target ) }
 			         "normal $target behaviour honoured";
 		} else {
@@ -430,8 +430,8 @@ foreach my $caller ( 'Test::Friend::Two' , Test::Friend::Two->new ) {
 		         'normal inherited $target behviour honoured';
 
 		# now test the non-inherited dispatch() method
-		if ( $target =~ m/class$/o  || $target =~ m/public$/o    ||
-		     $target =~ m/shared$/o || $target =~ m/protected$/o    ) {
+		if ( $target =~ m/class$/o      || $target =~ m/public$/o    ||
+		     $target =~ m/restricted$/o || $target =~ m/protected$/o    ) {
 			lives_ok { $caller->dispatch( $object => $target ) }
 			         "normal $target behaviour honoured";
 		} else {

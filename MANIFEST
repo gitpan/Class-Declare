@@ -12,7 +12,7 @@ t/04instance.t
 t/05test.t
 t/06class.t
 t/07static.t
-t/08shared.t
+t/08restricted.t
 t/09public.t
 t/10private.t
 t/11protected.t
@@ -26,3 +26,4 @@ t/18strict.t
 t/19friend.t
 t/20dump.t
 t/21clone.t
+t/22shared.t

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Dump.pm,v 1.18 2003/06/04 01:46:32 ian Exp $
+# $Id: Dump.pm,v 1.19 2003/06/06 10:42:42 ian Exp $
 package Class::Declare::Dump;
 
 use strict;
@@ -20,8 +20,8 @@ L<Class::Declare>, providing the B<dump()> routine.
 use base	qw( Class::Declare     );
 use vars	qw( $REVISION $VERSION );
 
-	$REVISION	= '$Revision: 1.18 $';
-	$VERSION	= '0.01';
+	$REVISION	= '$Revision: 1.19 $';
+	$VERSION	= '0.02';
 
 
 =head1 DESCRIPTION
@@ -79,7 +79,7 @@ a L<Class::Declare>-derived object or package.
 			*{ $sub }	= *{ __PACKAGE__ . '::' . $method };
 		}
 
-		1;	# that's all: skull-duggery complete :)
+		1;	# that's all: hack complete :)
 	}
 
 
@@ -141,7 +141,7 @@ a L<Class::Declare>-derived object or package.
 			# is a reference to an object
 			return ref( $target )	if ( $type eq 'public' );
 
-			# OK, from here we're dealing with either shared, protected,
+			# OK, from here we're dealing with either restricted, protected,
 			# static or private attributes
 
 			# get the friends of the target class
@@ -156,8 +156,8 @@ a L<Class::Declare>-derived object or package.
 			            	         || $sub    && exists $friend->{ $sub    }
 			            	       );
 
-			# OK, if we're looking for shared attributes we're done
-			return 1				if ( $type eq 'shared' );
+			# OK, if we're looking for restricted attributes we're done
+			return 1				if ( $type eq 'restricted' );
 
 			# if we're looking for protected attributes, then we need a
 			# reference to return true
@@ -349,16 +349,16 @@ sub dump : locked
 	my	$class	= ref( $self ) || $self;
 
 	# OK, parse the arguments
-	my	$_args	= $self->arguments( \@_ => { public    => undef ,
-	  	      	                             private   => undef ,
-	  	      	                             protected => undef ,
-	  	      	                             class     => undef ,
-	  	      	                             static    => undef ,
-	  	      	                             shared    => undef ,
-	  	      	                             friends   => undef ,
-	  	      	                             depth     => undef ,
-	  	      	                             indent    => 4     ,
-	  	      	                             all       => 1     } );
+	my	$_args	= $self->arguments( \@_ => { public     => undef ,
+	  	      	                             private    => undef ,
+	  	      	                             protected  => undef ,
+	  	      	                             class      => undef ,
+	  	      	                             static     => undef ,
+	  	      	                             restricted => undef ,
+	  	      	                             friends    => undef ,
+	  	      	                             depth      => undef ,
+	  	      	                             indent     => 4     ,
+	  	      	                             all        => 1     } );
 
 	# have we been called from outside this file
 	# i.e. is this a non-recursive call (first call)
@@ -387,7 +387,7 @@ sub dump : locked
 		and delete $_args->{ all }
 		and last
 			foreach ( qw( public private protected
-			              class  static  shared    friends ) );
+			              class  static  restricted friends ) );
 
 	# next, we need to check to ensure the user has permission to access the
 	# specified attribute types for the given object
@@ -420,13 +420,13 @@ sub dump : locked
 	# increase the indentation
 		$__INDENT__	+= $_args->{ indent };
 
-	# display order: class, static, shared, public, private, protected
+	# display order: class, static, restricted, public, private, protected
 	# and friends
 	#
 	# determine the attribute types that may be displayed/have been requested
 	# NB: if required, as this is first calculated during the
 	#     top-level call to dump()
-	my	@types	= qw( class static shared public private protected );
+	my	@types	= qw( class static restricted public private protected );
 		@types	= grep { $_args->{ $_ } } @types	unless ( $_args->{ all } );
 	# if we've been asked to list friends, then add this separately
 		push @types , 'friends'						if ( $_args->{ friends } );
@@ -561,7 +561,7 @@ sub dump : locked
 					my	$origin	= $__REFERENCES__{ $self } || $self;
 
 					$__REFERENCES__{ $value }	= join '->' , $origin , $attr;
-					$str						= $__dump__->( $value , $depth );
+					$str						= $__dump__->($value , $depth);
 				}
 
 			# otherwise, just dump the value

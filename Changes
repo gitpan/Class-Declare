@@ -1,5 +1,11 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.4 2003/06/03 21:45:03 ian Exp $
+$Id: Changes,v 1.5 2003/06/06 13:56:31 ian Exp $
+
+0.02	Fri Jun  6 13:52:37 2003
+	- renamed "shared" attributes and methods "restricted" to avoid
+	  collision with :shared attribute for threading
+	  (see Class::Declare::Attributes)
+	- deprecated the shared() method: now throws an error
 
 0.01	Tue Jun  3 21:42:14 2003
 	- initial Class::Declare release

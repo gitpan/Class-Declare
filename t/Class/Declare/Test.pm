@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: Test.pm,v 1.18 2003/06/04 01:48:54 ian Exp $
+# $Id: Test.pm,v 1.19 2003/06/06 10:42:42 ian Exp $
 
 # generate and execute access permutations
 package Class::Declare::Test;
@@ -7,7 +7,7 @@ package Class::Declare::Test;
 use strict;
 use base qw( Class::Declare     );
 use vars qw( $REVISION $VERSION );
-             $REVISION	= '$Revision: 1.18 $';
+             $REVISION	= '$Revision: 1.19 $';
 			 $VERSION	= '0.01';
 
 =head1 NAME
@@ -383,7 +383,7 @@ test, which must be one of the following:
 
 =item C<static>
 
-=item C<shared>
+=item C<restricted>
 
 =item C<public>
 
@@ -394,7 +394,7 @@ test, which must be one of the following:
 =back
 
 I<tests> is a reference to an array of test bitmaps defining the tests
-to perform. See the C<class>, C<static>, C<shared>, C<public>, C<private>,
+to perform. See the C<class>, C<static>, C<restricted>, C<public>, C<private>,
 C<protected> and C<strict> test files.
 
 The I<strict> attribute may be used to turn strict access checking on and
@@ -432,8 +432,8 @@ __PACKAGE__->declare(
 			and return undef		unless ( $self->tests );
 
 		# make sure the type is understood
-		( grep { $self->type eq $_ } qw( class  static  shared 
-		                                 public private protected ) )
+		( grep { $self->type eq $_ } qw( class  static  restricted 
+		                                 public private protected  ) )
 			 or warn $class . ': unknown type "' . $self->type . '"'
 			and return undef;
 
