@@ -1,0 +1,47 @@
+Revision history for Perl module Class::Declare
+$Id: Changes,v 1.13 2007-06-04 08:21:17 ian Exp $
+
+0.08  Sun Jun  3 15:23:12 2007
+  - added 'backtrace' to dump() to control the generation of backtrace
+    references
+
+0.07  Tue May  1 18:15:43 2007
+  - added hash() method
+
+0.06  Mon Mar  5 02:07:04 2007
+  - added abstract methods
+  - added support for the 'new' for declare() allowing non-public attributes
+    to be automatically set in the constructor
+  - corrected STORABLE_thaw to allow for changes to Storable
+      (see http://rt.cpan.org/Public/Bug/Display.html?id=11783)
+  - added the strict() method for testing whether a class is running
+    under strict access control checking
+  - corrected warnings from dump()
+
+0.05	Tue Jun 17 06:05:07 2003
+	- fixed possible key collision in freeze/thaw of Class::Declare objects
+
+0.04	Mon Jun 16 11:24:21 2003
+	- fixed Makefile.PL dependency to require Test::Exception 0.15 or
+	  greater (we need lives_and())
+
+0.03	Sun Jun 15 19:22:36 2003
+	- changed underlying object store from list of hashes to hash of hashes
+	- arguments() now also accepts a list of argument names as well as a single
+	  name as the default arguments, in which case all arguments default to 
+	  undef
+	- attribute modifiers are now supported:
+	    + class attributes may be set read-write
+		+ instance attributes may be set read-only
+	- declare() now also accepts a list of attribute names as well as a
+	  single name for each type of attribute, in which case the attributes
+	  default to undef.
+
+0.02	Fri Jun  6 13:52:37 2003
+	- renamed "shared" attributes and methods "restricted" to avoid
+	  collision with :shared attribute for threading
+	  (see Class::Declare::Attributes)
+	- deprecated the shared() method: now throws an error
+
+0.01	Tue Jun  3 21:42:14 2003
+	- initial Class::Declare release
