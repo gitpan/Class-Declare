@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: Makefile.PL,v 1.9 2007-06-04 08:21:17 ian Exp $
+# $Id: Makefile.PL,v 1.10 2008-07-06 23:09:06 ian Exp $
 #
 # Makefile.PL for Class::Declare
 #
@@ -9,8 +9,8 @@ use 5.000;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    'NAME'         => 'Class::Declare',
-    'VERSION'      => '0.08'          , # version ahead of module version
+    'NAME'         => 'Class::Declare' ,
+    'VERSION_FROM' => 'Declare.pm'     ,
 
 	# list the module prerequisites
     'PREREQ_PM'    => {  Storable         => 0    ,

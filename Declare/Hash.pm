@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Hash.pm,v 1.3 2007-06-04 08:21:17 ian Exp $
+# $Id: Hash.pm,v 1.5 2008-07-06 23:06:25 ian Exp $
 package Class::Declare::Hash;
 
 use strict;
@@ -20,7 +20,7 @@ L<Class::Declare>, providing the B<hash()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.3 $';
+  $REVISION = '$Revision: 1.5 $';
   $VERSION  = '0.08';
 
 
@@ -84,10 +84,15 @@ L<Class::Declare>-derived object or package.
   }
 
 
+  # %__REFERENCES__
+  #
+  # Store attribute references for showing equality in the hash.
+  my  %__REFERENCES__;  undef %__REFERENCES__;
+
   # %__CALLER__
   #
   # Store the caller information for the original call to hash()
-  my  %__CALLER__;    undef %__CALLER__;
+  my  %__CALLER__;      undef %__CALLER__;
 
 
   #
@@ -117,7 +122,8 @@ L<Class::Declare>-derived object or package.
 
       # first, we must be certain that the target is derived from
       # Class::Declare
-      return undef      unless ( $target->isa( 'Class::Declare' ) );
+      return undef      unless ( UNIVERSAL::isa( $target          ,
+                                                 'Class::Declare' ) );
 
       # if we're testing class or abstract attributes, then that's all we need
       return 1              if ( $type eq 'class'    );
@@ -137,8 +143,8 @@ L<Class::Declare>-derived object or package.
       # not a friend, then we can't proceed
       my  $caller = $__CALLER__{ package    };
       my  $sub    = $__CALLER__{ subroutine };
-      return undef  unless (    $caller->isa( $class  )
-                             ||  $class->isa( $caller )
+      return undef  unless (    UNIVERSAL::isa( $caller , $class  )
+                             || UNIVERSAL::isa( $class  , $caller )
                              || $caller && exists $friend->{ $caller }
                              || $sub    && exists $friend->{ $sub    }
                            );
@@ -177,6 +183,9 @@ L<Class::Declare>-derived object or package.
       # calling routine/context
       $__CALLER__{ package    } = ( caller 1 )[ 0 ];
       $__CALLER__{ subroutine } = ( caller 2 )[ 3 ];
+
+      # reset the references store
+      undef %__REFERENCES__;
     }; # $__save__()
 
 
@@ -205,6 +214,8 @@ sub hash : locked method
                                            static     => undef ,
                                            restricted => undef ,
                                            abstract   => undef ,
+                                           depth      => undef ,
+                                           backtrace  => 1     ,
                                            all        => 1     } );
 
   # have we been called from outside this file
@@ -212,9 +223,12 @@ sub hash : locked method
   my  $outside  = ( caller )[ 1 ] ne __FILE__;
 
   # if we're called from outside this file (i.e. it's not an
-  # internal recursive call to hash() from $__dump__()) then make
+  # internal recursive call to hash()) then make
   # note of the arguments and the context
     $__save__->( $self , $_args ) if ( $outside );
+
+  # store the current depth limit
+  my  $depth    = delete $_args->{ depth };
 
   # unset 'all' if any of the other arguments have been set
   ( $_args->{ $_ } )
@@ -250,7 +264,9 @@ sub hash : locked method
         die "access to $_ attributes denied in call to "
             . "$sub() at $file line $line\n";
       } foreach ( grep { $_args->{ $_ } }
-                       grep { !/all/ } keys %{ $_args } );
+                       grep {    !/all/o
+                              && !/backtrace/o
+                            } keys %{ $_args } );
   }
 
   # determine the attribute types that may be returned/have been requested
@@ -327,7 +343,48 @@ sub hash : locked method
                                            grep { defined }
                                                 $rmap{ $type } ) {
 
-          $rtn{ $attr } = $hash->{ $attr };
+      # what value do we have?
+      my  $v            = $hash->{ $attr };
+
+      # if this is a reference
+      if ( ref $v ) {
+        # if we have backtrace turned on, then check to see if we have
+        # seen this reference before
+        my  $r          = $__REFERENCES__{ $v };
+
+        # if we've not seen this reference before, then we should attempt
+        # to expand it
+        unless ( defined $r ) {
+          # if we have not reached our depth limit, then recurse if we need to
+          #   - if the depth has not been given, then we descend as far
+          #     as we can
+          #   - NOTE: this is a change in default behaviour since v0.08
+          if ( ! defined $depth || $depth > 0 ) {
+            # if we have an object, and it's derived from this class
+            # and it supports the hash() method, then expand it to a hash
+            if (    UNIVERSAL::isa( $v , 'Class::Declare' )
+                 && UNIVERSAL::can( $v , 'hash'           ) ) {
+              # should we decrementing the depth?
+              $depth--        if ( defined $depth );
+              $r            = $v->hash( %{ $_args } , depth => $depth );
+            }
+          }
+
+          # if we don't have a reference, then use the original value
+              $r          ||= $v;
+
+          # the value we have now is all we are going to get for this
+          # attribute, so make sure it's stored (if we have backtracing turned
+          # on)
+            $__REFERENCES__{ $v } =  $r     if ( $_args->{ backtrace } );
+        }
+
+        # use whatever expansion we have obtained
+          $v                = $r;
+      }
+
+      # record the expansion for this attribute
+          $rtn{ $attr }     = $v;
     }
   }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.63 2007-06-04 08:21:17 ian Exp $
+# $Id: Declare.pm,v 1.65 2008-07-06 23:06:25 ian Exp $
 package Class::Declare;
 
 use strict;
@@ -83,8 +83,8 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION = '0.08';
-            $REVISION = '$Revision: 1.63 $';
+             $VERSION = '0.09';
+            $REVISION = '$Revision: 1.65 $';
 
 # declare the read-write and read-only methods for export
 @EXPORT_OK    = qw( rw ro );
@@ -2073,13 +2073,20 @@ sub dump : locked method { __PACKAGE__->class( $_[0] ); $__extern->( @_ ); }
 
 Return a hash representing the values of the attributes of the class or object
 (depending on how B<hash()> is called. B<hash()> supports the same calling
-parameters as B<dump()>, except for C<friends>, C<indent>, and C<depth>).
+parameters as B<dump()>, except for C<friends> and C<indent>).
 B<hash()> observes normal access control, only returning attributes that the
 caller would normally have access to. C<abstract> attributes are returned with
 a value of C<undef>.
 
 If called in a list context, B<hash()> will return a hash, otherwise a hash
 reference is returned.
+
+B<Note:> As of v0.09, B<hash()> supports the I<depth> parameter, and will,
+by default, recurse to generate a hash of the entire object tree (if derived
+from B<Class::Declare>. If I<depth> is set, then I<hash()> will limit it's
+output to the given recursive depth. A depth of C<0> will display the target's
+attributes, but will not expand those attribute values.
+
 
 =cut
 sub hash : locked method { __PACKAGE__->class( $_[0] ); $__extern->( @_ ); }
@@ -2244,7 +2251,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.63 $';
+               $REVISION = '$Revision: 1.65 $';
 
   ...
 

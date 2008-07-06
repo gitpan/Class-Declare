@@ -916,13 +916,20 @@ DESCRIPTION
     hash( [ *param* => *value* ] )
         Return a hash representing the values of the attributes of the class
         or object (depending on how hash() is called. hash() supports the
-        same calling parameters as dump(), except for "friends", "indent",
-        and "depth"). hash() observes normal access control, only returning
-        attributes that the caller would normally have access to. "abstract"
-        attributes are returned with a value of "undef".
+        same calling parameters as dump(), except for "friends" and "indent".
+        hash() observes normal access control, only returning attributes that
+        the caller would normally have access to. "abstract" attributes are
+        returned with a value of "undef".
 
         If called in a list context, hash() will return a hash, otherwise a
         hash reference is returned.
+
+        Note: As of v0.09, hash() supports the "depth" parameter, and will,
+        by default, recurse to generate a hash of the entire object tree
+        (if derived from Class::Declare. If "depth" is set, then "hash()"
+        will limit it's output to the given recursive depth. A depth of 0
+        will display the target's attributes, but will not expand those
+        attribute values.
 
     arguments( *args* => *default* )
         A class helper method for handling named argument lists. In Perl,
@@ -1009,7 +1016,7 @@ DESCRIPTION
           use strict;
           use base qw( Class::Declare );
           use vars qw( $REVISION      );
-                       $REVISION = '$Revision: 1.12 $';
+                       $REVISION = '$Revision: 1.13 $';
 
           ...
 

@@ -1,11 +1,14 @@
 #!/usr/bin/perl -w
-# $Id: 28hash.t,v 1.1 2007-05-01 16:23:48 ian Exp $
+# $Id: 28hash.t,v 1.2 2008-07-06 23:06:25 ian Exp $
 
 # hash.t
 #
 # Ensure hash() behaves as it should.
 
-use Test::More      tests => 18;
+use strict;
+use warnings;
+
+use Test::More      tests => 22;
 use Test::Exception;
 
 
@@ -25,6 +28,7 @@ my  $__code   = sub { rand };
 package Test::Hash::Zero;
 
 use strict;
+use warnings;
 use base qw( Class::Declare );
 
 # add a reoutine for calling hash()
@@ -294,16 +298,38 @@ dies_ok { $object->hash( restricted => 1 ) }
 package Test::Hash::Two;
 
 use strict;
+use warnings;
 use base qw( Test::Hash::One );
 
 # add a local routine for calling hash()
 sub dispatch
 {
 	my	$self	= __PACKAGE__->class( shift );
-		$self->hash;
+		  $self->hash( @_ );
 } # dispatch()
 
 1;
+
+
+# create a second derived class for testing depth and backtrace
+package Test::Hash::Three;
+
+use strict;
+use warnings;
+
+use base qw( Test::Hash::Two );
+
+my  $one    = Test::Hash::One->new;
+
+__PACKAGE__->declare(
+
+  class  => { my_nested    => $one ,
+              my_reference => $one }
+
+);
+
+1;
+
 
 # return to main to resume the testing
 package main;
@@ -336,3 +362,29 @@ ok( cmp_hash( scalar( $class->dispatch  ) => \%hash_two_class    ) ,
     'Test::Hash::Two->dispatch() returns correctly'                );
 ok( cmp_hash( scalar( $object->dispatch ) => \%hash_two_instance ) ,
     'Test::Hash::Two=REF->dispatch() returns correctly'            );
+
+
+# now test for backtrace and depth support
+#   - restrict this to class methods to keep it short ;)
+    $class              = 'Test::Hash::Three';
+
+# if we set the depth to 0, we shouldn't get an expansion of 'my_nested'
+my  $ref                = $class->dispatch( depth => 0 );
+#   - so 'my_nested' shouldn't be a HASH reference
+ok( ref $ref->{ my_nested } ne 'HASH' ,
+    'depth => 0 tested as expected'   );
+#   - while no 'depth' should expand it
+    $ref                = $class->dispatch;
+ok( ref $ref->{ my_nested } eq 'HASH' ,
+    'no depth tested as expected'     );
+
+# if we have backtracing on (default), then the hash references generated
+# should be repeated where the object references are the same
+#   - my_nested->my_restricted == my_restricted
+ok( $ref->{ my_nested } == $ref->{ my_reference } ,
+    'backtracing working as expected'             );
+
+# turn backtracing off and the references should be different
+    $ref                = $class->dispatch( backtrace => 0 );
+ok( $ref->{ my_nested } != $ref->{ my_reference } ,
+    'backtracing off working as expected'         );
