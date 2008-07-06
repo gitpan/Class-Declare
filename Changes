@@ -1,5 +1,9 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.14 2008-07-06 22:09:49 ian Exp $
+$Id: Changes,v 1.15 2008-07-06 23:46:51 ian Exp $
+
+0.10  Mon Jul  7 00:45;13 2008
+  - updated the versions of the Class::Declare::Hash and Class::Declare::Dump
+    helper packages
 
 0.09  Sun Jul  6 21:36:46 2008
   - changed hash() to automatically recurse rather than stop at the first

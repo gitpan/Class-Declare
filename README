@@ -924,7 +924,7 @@ DESCRIPTION
         If called in a list context, hash() will return a hash, otherwise a
         hash reference is returned.
 
-        Note: As of v0.09, hash() supports the "depth" parameter, and will,
+        Note: As of v0.10, hash() supports the "depth" parameter, and will,
         by default, recurse to generate a hash of the entire object tree
         (if derived from Class::Declare. If "depth" is set, then "hash()"
         will limit it's output to the given recursive depth. A depth of 0
@@ -1016,7 +1016,7 @@ DESCRIPTION
           use strict;
           use base qw( Class::Declare );
           use vars qw( $REVISION      );
-                       $REVISION = '$Revision: 1.13 $';
+                       $REVISION = '$Revision: 1.14 $';
 
           ...
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Hash.pm,v 1.5 2008-07-06 23:06:25 ian Exp $
+# $Id: Hash.pm,v 1.7 2008-07-06 23:46:51 ian Exp $
 package Class::Declare::Hash;
 
 use strict;
@@ -20,8 +20,8 @@ L<Class::Declare>, providing the B<hash()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.5 $';
-  $VERSION  = '0.08';
+  $REVISION = '$Revision: 1.7 $';
+  $VERSION  = '0.10';
 
 
 =head1 DESCRIPTION

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Dump.pm,v 1.27 2007-06-04 08:21:17 ian Exp $
+# $Id: Dump.pm,v 1.29 2008-07-06 23:46:51 ian Exp $
 package Class::Declare::Dump;
 
 use strict;
@@ -20,8 +20,8 @@ L<Class::Declare>, providing the B<dump()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.27 $';
-  $VERSION  = '0.08';
+  $REVISION = '$Revision: 1.29 $';
+  $VERSION  = '0.10';
 
 
 =head1 DESCRIPTION

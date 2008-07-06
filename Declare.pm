@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.65 2008-07-06 23:06:25 ian Exp $
+# $Id: Declare.pm,v 1.66 2008-07-06 23:46:51 ian Exp $
 package Class::Declare;
 
 use strict;
@@ -83,8 +83,8 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION = '0.09';
-            $REVISION = '$Revision: 1.65 $';
+             $VERSION = '0.10';
+            $REVISION = '$Revision: 1.66 $';
 
 # declare the read-write and read-only methods for export
 @EXPORT_OK    = qw( rw ro );
@@ -2081,7 +2081,7 @@ a value of C<undef>.
 If called in a list context, B<hash()> will return a hash, otherwise a hash
 reference is returned.
 
-B<Note:> As of v0.09, B<hash()> supports the I<depth> parameter, and will,
+B<Note:> As of v0.10, B<hash()> supports the I<depth> parameter, and will,
 by default, recurse to generate a hash of the entire object tree (if derived
 from B<Class::Declare>. If I<depth> is set, then I<hash()> will limit it's
 output to the given recursive depth. A depth of C<0> will display the target's
@@ -2251,7 +2251,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.65 $';
+               $REVISION = '$Revision: 1.66 $';
 
   ...
 
