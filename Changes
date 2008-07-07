@@ -1,5 +1,9 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.17 2008-07-07 12:43:52 ian Exp $
+$Id: Changes,v 1.18 2008-07-07 15:22:12 ian Exp $
+
+0.12  Mon Jul  7 15:20:51 2008
+  - corrected 'depth' handling in hash() to work across nested ARRAY
+    and HASH references as well as objects
 
 0.11  Mon Jul  7 12:39:34 2008
   - corrected hash() to perform proper recursion through HASH and ARRAY

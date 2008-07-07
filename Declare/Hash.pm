@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Hash.pm,v 1.8 2008-07-07 12:43:01 ian Exp $
+# $Id: Hash.pm,v 1.9 2008-07-07 15:20:59 ian Exp $
 package Class::Declare::Hash;
 
 use strict;
@@ -20,8 +20,8 @@ L<Class::Declare>, providing the B<hash()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.8 $';
-  $VERSION  = '0.11';
+  $REVISION = '$Revision: 1.9 $';
+  $VERSION  = Class::Declare->VERSION;
 
 
 =head1 DESCRIPTION
@@ -205,14 +205,21 @@ L<Class::Declare>-derived object or package.
   #
   # Perform a recursive hash() expansion for a given value
   my  $__hash__;
-      $__hash__   = sub { # <r> , <args>
+      $__hash__   = sub { # <r> , <depth> , <args>
       my  $r          = shift;
+      my  $depth      = shift;
+
+      # if depth is zero, then return the value we have
+      return $r       unless ( ! defined $depth || $depth > 0 );
 
       # if the value is undefined, then return undefined
-      return undef    unless ( defined $r );
+      return undef    unless (   defined $r );
 
       # if we don't have a reference, then return the supplied value
-      return $r       unless (     ref $r );
+      return $r       unless (       ref $r );
+
+      # reduce the depth (if defined)
+          $depth--        if (   defined $depth );
 
       # we have a reference value
       #   - if it's an object derived from Class::Declare, then we should
@@ -223,7 +230,8 @@ L<Class::Declare>-derived object or package.
         # array
         /^ARRAY$/o  && do {
           my  $ref  = [];
-          push @{ $ref } , scalar $__hash__->( $_ , @_ )   for ( @{ $r } );
+          push @{ $ref } , scalar $__hash__->( $_ , $depth , @_ )
+                                                        foreach ( @{ $r } );
 
           # return the generated array
           return $ref;
@@ -233,7 +241,7 @@ L<Class::Declare>-derived object or package.
         /^HASH$/o   && do {
           my  $ref          = {};
           while ( my ( $k , $v ) = each %{ $r } ) {
-              $ref->{ $k }  = $__hash__->( $v , @_ );
+              $ref->{ $k }  = $__hash__->( $v , $depth , @_ )
           }
 
           # return the generated hash
@@ -245,7 +253,7 @@ L<Class::Declare>-derived object or package.
         #   - if so, recurse through that
             UNIVERSAL::isa( $r , 'Class::Declare' )
         and UNIVERSAL::can( $r , 'hash'           )
-        and return scalar $r->hash( @_ );
+        and return scalar $r->hash( @_ , depth => $depth );
       }
 
       # if we've made it this far, then simply return the value passed in
@@ -417,8 +425,8 @@ sub hash : locked method
           if ( ! defined $depth || $depth > 0 ) {
             # generate the expansion of this value
             #   - decrement the depth count
-            $depth--      if ( defined $depth );
-            $r          = $__hash__->( $v , %{ $_args } , depth => $depth );
+            #$depth--      if ( defined $depth );
+            $r          = $__hash__->( $v , $depth , %{ $_args } );
           }
 
           # if we don't have a reference, then use the original value

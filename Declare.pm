@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.68 2008-07-07 14:29:05 ian Exp $
+# $Id: Declare.pm,v 1.69 2008-07-07 15:20:59 ian Exp $
 package Class::Declare;
 
 use strict;
@@ -83,8 +83,8 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION = '0.11';
-            $REVISION = '$Revision: 1.68 $';
+             $VERSION = '0.12';
+            $REVISION = '$Revision: 1.69 $';
 
 # declare the read-write and read-only methods for export
 @EXPORT_OK    = qw( rw ro );
@@ -2252,7 +2252,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.68 $';
+               $REVISION = '$Revision: 1.69 $';
 
   ...
 
