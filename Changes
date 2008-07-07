@@ -1,5 +1,9 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.15 2008-07-06 23:46:51 ian Exp $
+$Id: Changes,v 1.17 2008-07-07 12:43:52 ian Exp $
+
+0.11  Mon Jul  7 12:39:34 2008
+  - corrected hash() to perform proper recursion through HASH and ARRAY
+    references, as well as Class::Declare objects
 
 0.10  Mon Jul  7 00:45;13 2008
   - updated the versions of the Class::Declare::Hash and Class::Declare::Dump

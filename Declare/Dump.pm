@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Dump.pm,v 1.29 2008-07-06 23:46:51 ian Exp $
+# $Id: Dump.pm,v 1.30 2008-07-07 12:43:01 ian Exp $
 package Class::Declare::Dump;
 
 use strict;
@@ -20,8 +20,8 @@ L<Class::Declare>, providing the B<dump()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.29 $';
-  $VERSION  = '0.10';
+  $REVISION = '$Revision: 1.30 $';
+  $VERSION  = '0.11';
 
 
 =head1 DESCRIPTION
@@ -91,18 +91,18 @@ a L<Class::Declare>-derived object or package.
   # $__INDENT__
   #
   # Current indentation level for this invocation
-  my  $__INDENT__;    undef $__INDENT__;
+  my  $__INDENT__;      undef $__INDENT__;
 
   # $__ARGS__
   #
   # Original calling arguments for dump(), minus the
   # object/instance/class
-  my  $__ARGS__;      undef $__ARGS__;
+  my  $__ARGS__;        undef $__ARGS__;
 
   # %__CALLER__
   #
   # Store the caller information for the original call to dump()
-  my  %__CALLER__;    undef %__CALLER__;
+  my  %__CALLER__;      undef %__CALLER__;
 
 
   #
@@ -280,8 +280,8 @@ a L<Class::Declare>-derived object or package.
 
           # object that has a dump() method, and is derived from
           # Class::Declare
-             $_[ 0 ]->isa( 'Class::Declare' )
-          && $_[ 0 ]->can( 'dump' )
+             UNIVERSAL::isa( $_[ 0 ] , 'Class::Declare' )
+          && UNIVERSAL::can( $_[ 0 ] , 'dump'           )
           && do {
             # if we have the depth set then we need to pass it
             # with the list of arguments

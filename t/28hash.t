@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 28hash.t,v 1.2 2008-07-06 23:06:25 ian Exp $
+# $Id: 28hash.t,v 1.3 2008-07-07 12:43:01 ian Exp $
 
 # hash.t
 #
@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More      tests => 22;
+use Test::More      tests => 25;
 use Test::Exception;
 
 
@@ -311,7 +311,7 @@ sub dispatch
 1;
 
 
-# create a second derived class for testing depth and backtrace
+# create another derived class for testing depth and backtrace
 package Test::Hash::Three;
 
 use strict;
@@ -326,7 +326,7 @@ __PACKAGE__->declare(
   class  => { my_nested    => $one ,
               my_reference => $one }
 
-);
+);  # declare()
 
 1;
 
@@ -388,3 +388,45 @@ ok( $ref->{ my_nested } == $ref->{ my_reference } ,
     $ref                = $class->dispatch( backtrace => 0 );
 ok( $ref->{ my_nested } != $ref->{ my_reference } ,
     'backtracing off working as expected'         );
+
+
+# create another class for testing references buried in arrays and hashes
+package Test::Hash::Four;
+
+use strict;
+use warnings;
+
+use base qw( Test::Hash::One );
+
+__PACKAGE__->declare(
+
+  class => { my_array => [            1 , Test::Hash::One->new ] ,
+             my_hash  => { one   =>   1                        ,
+                           two   =>       Test::Hash::One->new ,
+                           three => [ 1 , Test::Hash::One->new ] } ,
+           }
+
+);  # declare()
+
+1;
+
+
+# return to main to resume the testing
+package main;
+
+# now test to ensure hash references and arrays are properly expanded as well
+    $class              = 'Test::Hash::Four';
+
+# perform a normal expansion for this class
+    $ref                = $class->call;
+
+# we should be able to test the following conditions
+#   - $ref->{ my_array }->[1] == $hash_one_instance
+ok( cmp_hash( $ref->{ my_array }->[1] , \%hash_one_instance ) ,
+    'array expansion working as expected'                     );
+#   - $ref->{ my_hash }->{ two } = $hash_one_instance
+ok( cmp_hash( $ref->{ my_hash }->{ two } , \%hash_one_instance ) ,
+    'hash expansion working as expected'                         );
+#   - $ref->{ my_hash }->{ three }->[1] = $hash_one_instance
+ok( cmp_hash( $ref->{ my_hash }->{ three }->[1] , \%hash_one_instance ) ,
+    'nested expansion working as expected'                              );

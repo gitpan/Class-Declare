@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Hash.pm,v 1.7 2008-07-06 23:46:51 ian Exp $
+# $Id: Hash.pm,v 1.8 2008-07-07 12:43:01 ian Exp $
 package Class::Declare::Hash;
 
 use strict;
@@ -20,8 +20,8 @@ L<Class::Declare>, providing the B<hash()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.7 $';
-  $VERSION  = '0.10';
+  $REVISION = '$Revision: 1.8 $';
+  $VERSION  = '0.11';
 
 
 =head1 DESCRIPTION
@@ -195,7 +195,62 @@ L<Class::Declare>-derived object or package.
   my  $__clear__  = sub {
       # clear the caller stack
       %__CALLER__ = ();
+
+      # reset the references store
+      undef %__REFERENCES__;
     }; # $__clear__()
+
+
+  # $__hash__()
+  #
+  # Perform a recursive hash() expansion for a given value
+  my  $__hash__;
+      $__hash__   = sub { # <r> , <args>
+      my  $r          = shift;
+
+      # if the value is undefined, then return undefined
+      return undef    unless ( defined $r );
+
+      # if we don't have a reference, then return the supplied value
+      return $r       unless (     ref $r );
+
+      # we have a reference value
+      #   - if it's an object derived from Class::Declare, then we should
+      #     call its hash() method and perform a recursive expansion
+      #   - if it's an ARRAY or HASH, we should iterate through its values
+      #     and attempt to expand them (if possible)
+      foreach ( ref $r ) {
+        # array
+        /^ARRAY$/o  && do {
+          my  $ref  = [];
+          push @{ $ref } , scalar $__hash__->( $_ , @_ )   for ( @{ $r } );
+
+          # return the generated array
+          return $ref;
+        };
+
+        # hash
+        /^HASH$/o   && do {
+          my  $ref          = {};
+          while ( my ( $k , $v ) = each %{ $r } ) {
+              $ref->{ $k }  = $__hash__->( $v , @_ );
+          }
+
+          # return the generated hash
+          return $ref;
+        };
+
+        # are we dealing with a Class::Declare object that supports the hash()
+        # method?
+        #   - if so, recurse through that
+            UNIVERSAL::isa( $r , 'Class::Declare' )
+        and UNIVERSAL::can( $r , 'hash'           )
+        and return scalar $r->hash( @_ );
+      }
+
+      # if we've made it this far, then simply return the value passed in
+      return $r;
+    };  # $__hash__()
 
 
 # hash()
@@ -360,18 +415,14 @@ sub hash : locked method
           #     as we can
           #   - NOTE: this is a change in default behaviour since v0.08
           if ( ! defined $depth || $depth > 0 ) {
-            # if we have an object, and it's derived from this class
-            # and it supports the hash() method, then expand it to a hash
-            if (    UNIVERSAL::isa( $v , 'Class::Declare' )
-                 && UNIVERSAL::can( $v , 'hash'           ) ) {
-              # should we decrementing the depth?
-              $depth--        if ( defined $depth );
-              $r            = $v->hash( %{ $_args } , depth => $depth );
-            }
+            # generate the expansion of this value
+            #   - decrement the depth count
+            $depth--      if ( defined $depth );
+            $r          = $__hash__->( $v , %{ $_args } , depth => $depth );
           }
 
           # if we don't have a reference, then use the original value
-              $r          ||= $v;
+            $r        ||= $v;
 
           # the value we have now is all we are going to get for this
           # attribute, so make sure it's stored (if we have backtracing turned
@@ -380,11 +431,11 @@ sub hash : locked method
         }
 
         # use whatever expansion we have obtained
-          $v                = $r;
+          $v            = $r;
       }
 
       # record the expansion for this attribute
-          $rtn{ $attr }     = $v;
+          $rtn{ $attr } = $v;
     }
   }
 
