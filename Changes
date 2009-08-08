@@ -1,6 +1,10 @@
 Revision history for Perl module Class::Declare
 $Id: Changes,v 1.18 2008-07-07 15:22:12 ian Exp $
 
+0.13  Sat Aug  8 19:53:12 2009
+  - corrected bug #48499 with Test::Builder attempting to load overload.pm
+    at runtime, while @INC has been set empty
+
 0.12  Mon Jul  7 15:20:51 2008
   - corrected 'depth' handling in hash() to work across nested ARRAY
     and HASH references as well as objects
@@ -34,30 +38,30 @@ $Id: Changes,v 1.18 2008-07-07 15:22:12 ian Exp $
     under strict access control checking
   - corrected warnings from dump()
 
-0.05	Tue Jun 17 06:05:07 2003
-	- fixed possible key collision in freeze/thaw of Class::Declare objects
+0.05  Tue Jun 17 06:05:07 2003
+  - fixed possible key collision in freeze/thaw of Class::Declare objects
 
-0.04	Mon Jun 16 11:24:21 2003
-	- fixed Makefile.PL dependency to require Test::Exception 0.15 or
-	  greater (we need lives_and())
+0.04  Mon Jun 16 11:24:21 2003
+  - fixed Makefile.PL dependency to require Test::Exception 0.15 or
+    greater (we need lives_and())
 
-0.03	Sun Jun 15 19:22:36 2003
-	- changed underlying object store from list of hashes to hash of hashes
-	- arguments() now also accepts a list of argument names as well as a single
-	  name as the default arguments, in which case all arguments default to 
-	  undef
-	- attribute modifiers are now supported:
-	    + class attributes may be set read-write
-		+ instance attributes may be set read-only
-	- declare() now also accepts a list of attribute names as well as a
-	  single name for each type of attribute, in which case the attributes
-	  default to undef.
+0.03  Sun Jun 15 19:22:36 2003
+  - changed underlying object store from list of hashes to hash of hashes
+  - arguments() now also accepts a list of argument names as well as a single
+    name as the default arguments, in which case all arguments default to 
+    undef
+  - attribute modifiers are now supported:
+      + class attributes may be set read-write
+      + instance attributes may be set read-only
+  - declare() now also accepts a list of attribute names as well as a
+    single name for each type of attribute, in which case the attributes
+    default to undef.
 
-0.02	Fri Jun  6 13:52:37 2003
-	- renamed "shared" attributes and methods "restricted" to avoid
-	  collision with :shared attribute for threading
-	  (see Class::Declare::Attributes)
-	- deprecated the shared() method: now throws an error
+0.02  Fri Jun  6 13:52:37 2003
+  - renamed "shared" attributes and methods "restricted" to avoid
+    collision with :shared attribute for threading
+    (see Class::Declare::Attributes)
+  - deprecated the shared() method: now throws an error
 
-0.01	Tue Jun  3 21:42:14 2003
-	- initial Class::Declare release
+0.01  Tue Jun  3 21:42:14 2003
+  - initial Class::Declare release

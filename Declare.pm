@@ -83,7 +83,7 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION = '0.12';
+             $VERSION = '0.13';
             $REVISION = '$Revision: 1.69 $';
 
 # declare the read-write and read-only methods for export

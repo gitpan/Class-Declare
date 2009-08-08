@@ -64,7 +64,29 @@ package main;
 my	$class	= 'Test::Dump::One';
 my	$object	= $class->new;
 {
-	local	@INC	= ();	# remove the include search path
+    # since Perl versions post-5.8.x (not sure of the exact 'x', but
+    # thanks to a bug report from Slaven Rezic [#48499] known to be
+    # in v5.8.9) the old test based on an empty @INC fails
+    #   - this is because Test::Builder attempts to load 'overload.pm'
+    #     during one of the tests, and @INC is empty, causing a failure
+    #   - so now we try something different
+    #       - we load a version of Class::Declare::Dump that will
+    #         result in a failure report from dump() as would be
+    #         expected if we couldn't load Class::Declare::Dump at all
+    #       - we then clean up after this test, pretending that we
+    #         haven't loaded Class::Declare::Dump before, to ensure
+    #         the subsequent tests can be run
+    #       - first we add the current directory to the front of @INC
+    #         to ensure we find the test version of Class::Declare::Dump
+    #       - then after these few tests, we remove all reference to
+    #         Class::Declare::Dump from %INC and the symbol table
+    #
+    # see https://rt.cpan.org/Ticket/Display.html?id=48499
+
+    use File::Basename;
+
+	local	@INC	= @INC;             # localise INC before modifying it
+    unshift @INC , dirname __FILE__;    # ensure we find test modules first
 
 	# extract the dump string, trapping the warning
 	my		$warning;
@@ -88,6 +110,18 @@ my	$object	= $class->new;
 	# make sure the warning string starts with Unable to load
 	ok( $warning =~ m/^Unable to load/o ,
 	    "Class::Declare::Dump load failure: correct error report" );
+
+    # pretend that Class::Declare::Dump has not been loaded
+    #   - remove 'Class::Declare::Dump::__init__()' from the symbol table
+    #   - remove 'Class::Declare::Dump' from %INC
+    # once this is done, the remaining tests will load the real
+    # Class::Declare::Dump module to test its behaviour
+    {
+        no strict 'refs';
+
+        undef *{ 'Class::Declare::Dump::__init__' };
+        delete $INC{ 'Class/Declare/Dump.pm' };
+    }
 }
 
 # OK, now we need to make sure Class::Declare::Dump can be loaded and there
@@ -96,7 +130,7 @@ my	$object	= $class->new;
 	my		$warning;
 	local	$SIG{ __WARN__ }	= sub { $warning .= $_	foreach ( @_ ) };
 
-		undef $warning;
+	undef $warning;
 	my	$dump	= $class->dump;
 	# make sure there were no warnings
 	ok( ! defined $warning , "Class::Declare::Dump loaded successfully" );
