@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: 18storable.t,v 1.1 2006-01-31 21:38:04 ian Exp $
+# $Id: 18storable.t 1511 2010-08-21 23:24:49Z ian $
 
 # storable.t
 #
 # Ensure Class::Declare objects are serializable via Storable.
 
 use strict;
-use Test::More	tests => 23;
+use Test::More  tests => 23;
 use Test::Exception;
 
 # define a Class::Declare package
@@ -29,13 +29,13 @@ package main;
 # object, since this will involve initially a freeze and then a thaw.
 #
 
-use Storable	qw( dclone );
+use Storable  qw( dclone );
 
 # create an instance of the Test::Storable object
-my	$object	= Test::Storable::One->new;
+my  $object = Test::Storable::One->new;
 
 # create a clone of this object using Storable's dclone()
-my	$clone;
+my  $clone;
 lives_ok { $clone = dclone( $object ) } 'cloning lives';
 
 # ensure that $clone is a reference and is a reference to a
@@ -46,9 +46,9 @@ ok( ref( $clone ) eq ref( $object ) , 'clone is an object' );
 # ensure these represent two different objects
 ok(    $object   !=    $clone   , 'cloned object is different from original' );
 { # ensure the scalar the clone references is different from the original
-	no strict 'refs';
-	ok( ${ $object } ne ${ $clone } ,
-	    'cloned object index is different from original' );
+  no strict 'refs';
+  ok( ${ $object } ne ${ $clone } ,
+      'cloned object index is different from original' );
 }
 
 # ensure the public attributes have been cloned properly
@@ -70,7 +70,7 @@ use strict;
 use base qw( Class::Declare );
 
 # declare a public attribute with a CODEREF value
-use constant	RANDOM	=> rand;
+use constant  RANDOM  => rand;
 
 __PACKAGE__->declare( public => { attribute => sub { RANDOM } } );
 
@@ -112,8 +112,8 @@ package Test::Storable::Three;
 use strict;
 use base qw( Class::Declare );
 
-use constant	RANDOM		=> rand;
-use constant	SUBROUTINE	=> sub { RANDOM };
+use constant  RANDOM    => rand;
+use constant  SUBROUTINE  => sub { RANDOM };
 
 __PACKAGE__->declare( public => { a => SUBROUTINE ,
                                   b => SUBROUTINE } );
@@ -123,7 +123,7 @@ __PACKAGE__->declare( public => { a => SUBROUTINE ,
 # return to main to resume testing
 package main;
 
-	$object	= Test::Storable::Three->new;
+  $object = Test::Storable::Three->new;
 
 # make sure cloning survives with two attributes with CODEREF values
 lives_ok { $clone = dclone( $object ) }

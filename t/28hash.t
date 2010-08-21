@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 28hash.t,v 1.3 2008-07-07 12:43:01 ian Exp $
+# $Id: 28hash.t 1511 2010-08-21 23:24:49Z ian $
 
 # hash.t
 #
@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More      tests => 25;
+use Test::More      tests => 19;
 use Test::Exception;
 
 
@@ -46,22 +46,22 @@ use strict;
 use base qw( Test::Hash::Zero );
 
 {
-	my	$friends	= [ qw( main::hash Test::Hash::Three ) ];
+  my  $friends  = [ qw( main::hash Test::Hash::Three ) ];
 
 __PACKAGE__->declare( class      => { my_class      => 1        } ,
                       static     => { my_static     => $__code  } ,
-					            restricted => { my_restricted => $__array } ,
-					            public     => { my_public     => $__hash  } ,
-					            private    => { my_private    => undef    } ,
-					            protected  => { my_protected  => $__hash  } ,
+                      restricted => { my_restricted => $__array } ,
+                      public     => { my_public     => $__hash  } ,
+                      private    => { my_private    => undef    } ,
+                      protected  => { my_protected  => $__hash  } ,
                       abstract   =>  'my_abstract'                ,
-					            friends    =>  $friends                     );
+                      friends    =>  $friends                     );
 
 # add a routine for calling the hash()
 sub call
 {
-	my	$self	= __PACKAGE__->class( shift );
-		  $self->hash;
+  my  $self = __PACKAGE__->class( shift );
+      $self->hash;
 } # call()
 
 }
@@ -71,81 +71,9 @@ sub call
 # return to main for the tests
 package main;
 
-# firstly, we want to know that the fall-back behaviour of hash() works
-# i.e. is Class::Declare::Hash cannot be loaded, raise a warning and simply
-# stringify the target (either the class or the object)
-my	$class	= 'Test::Hash::One';
-my	$object	= $class->new;
-{
-    # see t/21dump.t
-    #   - somewhere below, Test::Builder attempts to dynamically load
-    #     'overload.pm' which fails because @INC is empty
-    #   - we try a different approach here, loading a 'test' version
-    #     of Class::Declare::Hash, rather than the real one, with the
-    #     test version intentionally having none of the expected behaviour
-    #   - this causes hash() to behave as if Class::Declare::Hash was not
-    #     loaded
-    #   - once these tests are done, we then remove all reference to
-    #     Class::Declare::Hash from having loaded, so that the subsequent
-    #     tests can run as expected
-
-    use File::Basename;
-
-	local	@INC    = @INC;             # localise @INC ahead of local changes
-    unshift @INC , dirname __FILE__;    # ensure we load test modules first
-
-	# extract the hash string, trapping the warning
-	my		$warning;
-	local	$SIG{ __WARN__ }	= sub { $warning .= $_	foreach ( @_ ) };
-	undef   $warning;
-
-	my	$hash	= $class->hash;
-	# make sure the hash string is the class name
-	ok( $hash eq $class ,
-	    "Class::Declare::Hash load failure: correct report" );
-	# make sure the warning string starts with Unable to load
-	ok( $warning =~ m/^Unable to load/o ,
-	    "Class::Declare::Hash load failure: correct error report" );
-
-	# repeat these tests with the object instance
-		undef $warning;
-		$hash	= $object->hash;
-	# make sure the hash string is the stringified object reference
-	ok( $hash =~ m/^$class=SCALAR\(0x[\da-f]+\)$/o ,
-	    "Class::Declare::Hash load failure: correct report" );
-	# make sure the warning string starts with Unable to load
-	ok( $warning =~ m/^Unable to load/o ,
-	    "Class::Declare::Hash load failure: correct error report" );
-
-    # pretend that Class::Declare::Hash has not been loaded
-    #   - remove 'Class::Declare::Hash::__init__()' from the symbol table
-    #   - remove 'Class::Declare::Hash' from %INC
-    # once this is done, the remaining tests will load the real
-    # Class::Declare::Hash module to test its behaviour
-    {
-        no strict 'refs';
-
-        undef *{ 'Class::Declare::Hash::__init__' };
-        delete $INC{ 'Class/Declare/Hash.pm' };
-    }
-}
-
-# OK, now we need to make sure Class::Declare::Hash can be loaded and there
-# are no errors
-{
-	my		$warning;
-	local	$SIG{ __WARN__ }	= sub { $warning .= $_	foreach ( @_ ) };
-
-		undef $warning;
-	my	$hash	= $class->hash;
-	# make sure there were no warnings
-	ok( ! defined $warning , "Class::Declare::Hash loaded successfully" );
-	# make sure the hash string is no equal to the class name
-	# i.e. this tests to see if the original hash() method or a replacement
-	#      method has been used to generate the hash.
-	ok( $hash ne $class ,
-	    "Class::Declare::Hash::hash() replaced Class::Declare::hash()" );
-}
+# create a test instance
+my  $class  = 'Test::Hash::One';
+my  $object = $class->new;
 
 # define an is_num() comparitor
 sub is_num($)
@@ -331,8 +259,8 @@ use base qw( Test::Hash::One );
 # add a local routine for calling hash()
 sub dispatch
 {
-	my	$self	= __PACKAGE__->class( shift );
-		  $self->hash( @_ );
+  my  $self = __PACKAGE__->class( shift );
+      $self->hash( @_ );
 } # dispatch()
 
 1;

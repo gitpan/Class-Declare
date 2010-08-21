@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 23shared.t,v 1.1 2006-01-31 21:38:04 ian Exp $
+# $Id: 23shared.t 1511 2010-08-21 23:24:49Z ian $
 
 # shared.t
 #
@@ -7,19 +7,19 @@
 #   - shared() has been deprecated since v0.02
 
 use strict;
-use Test::More	tests => 2;
+use Test::More  tests => 2;
 use Test::Exception;
 
 # make sure trying to declare a shared attribute fails
 throws_ok {
-	package Test::Shared::One;
+  package Test::Shared::One;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( shared => undef );
+  __PACKAGE__->declare( shared => undef );
 
-	1;
+  1;
 } "/Unknown parameter 'shared'/" ,
   "deprecated type 'shared' caught in call to declare()";
 

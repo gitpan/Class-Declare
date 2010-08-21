@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: 17arguments.t,v 1.1 2006-01-31 21:38:04 ian Exp $
+# $Id: 17arguments.t 1511 2010-08-21 23:24:49Z ian $
 
 # arguments.t
 #
 # Ensure the arguments() function works correctly.
 
 use strict;
-use Test::More	tests => 27;
+use Test::More  tests => 27;
 use Test::Exception;
 
 # load the Class::Declare module for the argument() method
@@ -15,18 +15,18 @@ use Class::Declare;
 # create a method with named arguments
 sub named
 {
-	my	%args	= Class::Declare->arguments( \@_ => { a => 1 } );
+  my  %args = Class::Declare->arguments( \@_ => { a => 1 } );
 
-	# return the argument passed in
-	return $args{ a };
+  # return the argument passed in
+  return $args{ a };
 } # named()
 
 # create a method that accepts any arguments
 sub any
 {
-	my	%args	= Class::Declare->arguments( \@_ );
+  my  %args = Class::Declare->arguments( \@_ );
 
-	return 1;
+  return 1;
 } # any()
 
 
@@ -58,20 +58,20 @@ lives_ok { Class::Declare->arguments( [] => {}    ) } 'hash reference lives';
 
 # ensure arguments() returns the default values correctly
 #   - as an array (hash)
-my	%hash	= Class::Declare->arguments( [] => { a => 1 } );
+my  %hash = Class::Declare->arguments( [] => { a => 1 } );
 ok(   $hash{ a } == 1 , 'default values return as a list' );
 
 #   - as a hash reference
-my	$hash	= Class::Declare->arguments( [] => { a => 1 } );
+my  $hash = Class::Declare->arguments( [] => { a => 1 } );
 ok( $hash->{ a } == 1 , 'default values return as a hash reference' );
 
 # ensure passed arguments are honoured
 #    - defined arguments
-	$hash	= Class::Declare->arguments( [ a => 2 ] => { a => 1 } );
+  $hash = Class::Declare->arguments( [ a => 2 ] => { a => 1 } );
 ok( $hash->{ a } == 2 , 'passed argument values honoured' );
 
 #    - undefined arguments
-	$hash	= Class::Declare->arguments( [ a => undef ] => { a => 1 } );
+  $hash = Class::Declare->arguments( [ a => undef ] => { a => 1 } );
 ok( ! defined $hash->{ a } , 'passed undefined argument values honoured' );
 
 # ensure unknown arguments raise an error
@@ -83,13 +83,13 @@ lives_ok { Class::Declare->arguments( [ b => 2 ] => undef ) }
          'unknown arguments are OK without defaults';
 
 # ensure a scalar default argument is mapped to an argument name
-	$hash	= Class::Declare->arguments( [] => 'a' );
+  $hash = Class::Declare->arguments( [] => 'a' );
 ok(   defined $hash        , "scalar default arguments accepted" );
 ok(    exists $hash->{ a } , "scalar default mepped to argument" );
 ok( ! defined $hash->{ a } , "scalar default mepped to argument" );
 
 # ensure a list reference default argument is mapped to argument names
-	$hash	= Class::Declare->arguments( [] => [ qw( a b ) ] );
+  $hash = Class::Declare->arguments( [] => [ qw( a b ) ] );
 ok(   defined $hash        , "array reference default arguments accepted" );
 ok(    exists $hash->{ a } , "array reference default mapped to arugment" );
 ok(    exists $hash->{ b } , "array reference default mapped to arugment" );

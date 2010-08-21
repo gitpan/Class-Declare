@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm,v 1.69 2008-07-07 15:20:59 ian Exp $
+# $Id: Declare.pm 1509 2010-08-21 23:10:21Z ian $
 package Class::Declare;
 
 use strict;
@@ -83,8 +83,8 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION = '0.13';
-            $REVISION = '$Revision: 1.69 $';
+             $VERSION = '0.14';
+            $REVISION = '$Revision: 1509 $';
 
 # declare the read-write and read-only methods for export
 @EXPORT_OK    = qw( rw ro );
@@ -94,6 +94,10 @@ use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # use Storable for deep-cloning of Class::Declare objects
 use Storable;
+
+# load the dump() and hash() modules
+use Class::Declare::Dump;
+use Class::Declare::Hash;
 
 
 =head1 MOTIVATION
@@ -588,7 +592,7 @@ error with B<die()>.
 
 # declare()
 #
-sub declare : locked
+sub declare
 {
   # determine the class we've been called from
   my  $class    = __PACKAGE__->class( shift );  # this should be our name
@@ -804,18 +808,16 @@ sub declare : locked
 
             # should we create a read-only or a read-write
             # accessor?
-            #   - class accessors should be 'locked' as they are implementing
-            #     singletons
             *{ $glob }  = ( $write ) ?
                               # the accessor should be read-write
-                              sub : lvalue locked method {
+                              sub : lvalue method {
                                 $class->$type( shift , $glob );
 
                                 $value  = shift   if ( @_ );
                                 $value;
                               } :
                               # the accessor should be read only
-                              sub :       locked method {
+                              sub :       method {
                                 $class->$type( $_[ 0 ] , $glob );
 
                                 return $value;
@@ -868,7 +870,7 @@ sub declare : locked
           # should we create a read-write or a read-only accessor?
           *{ $glob }  = ( $write ) ?
             # the accessor should be read-write
-            sub : lvalue locked method {
+            sub : lvalue method {
               my  $self = $class->$type( shift , $glob );
 
               my  $hash;
@@ -885,7 +887,7 @@ sub declare : locked
                 $hash->{ $method };
             } :
             # the accessor should be read-only
-            sub : locked method {
+            sub : method {
               my  $self = $class->$type( $_[ 0 ] , $glob );
 
               my  $hash;
@@ -1014,7 +1016,7 @@ Class attributes are not cloned as they are assumed to be constant across
 all object instances.
 
 =cut
-sub new : locked method
+sub new : method
 {
   my  $self   = __PACKAGE__->class( shift );
   my  $class  = ref( $self ) || $self;
@@ -1515,7 +1517,7 @@ it's parent's C<DESTROY()> method, using a paradigm similar to the following:
 # DESTROY()
 #
 # Free object hash references.
-sub DESTROY : locked
+sub DESTROY
 {
   my  $self = __PACKAGE__->public( shift );
 
@@ -1670,7 +1672,7 @@ to the clone.
 # STORABLE_freeze()
 #
 # Hook for Storable to freeze Class objects.
-sub STORABLE_freeze : locked
+sub STORABLE_freeze
 {
   my  $self     = __PACKAGE__->public( shift );
   my  $cloning  = shift;
@@ -1751,7 +1753,7 @@ sub STORABLE_freeze : locked
 #     recreated object
 #   - if the index is currently occupied, then the next available
 #     index will be taken.
-sub STORABLE_thaw : locked
+sub STORABLE_thaw
 {
   my  $self     = __PACKAGE__->public( shift );
   my  $cloning  = shift;
@@ -1958,20 +1960,8 @@ in the call to B<dump()> then this only has effect on the target object
 of the B<dump()> call, and not any subsequent recursive calls to B<dump()>
 used to display nested objects.
 
-The code to implement B<dump()> is quite long, and so has been split into a
-separate module L<Class::Declare::Dump>. The first time B<dump()> is called
-on a B<Class::Declare>-derived object or class, B<Class::Declare::Dump> is
-loaded, and the dump generated. If the loading of B<Class::Declare::Dump>
-fails, a warning is given, and B<dump()> returns the stringification of
-the given class or instance.
-
 =cut
-my   $__extern  = sub {
-  my  $self   = shift;
-
-  # where were we called from, and what are we called?
-  my  ( undef , $file , $line , $sub )  = caller 1;
-  my  $module = join '::' , map { ucfirst } split '::' ,  $sub;
+BEGIN {
 
   #
   # create helper routines that'll be passed to Class::Declare::Dump to
@@ -2013,60 +2003,18 @@ my   $__extern  = sub {
     }; # $__get_friends__()
 
 
-  # attempt to load the Class::Declare::Dump module
-  # NB: The dump() method in Class::Declare::Dump overwrites this
-  #     method, so that future calls to Class::Declare::dump() do
-  #     not execute this code, but rather the intended dump() code.
-  #
-  #     Because Class::Declare::Dump needs access to %__OBJECTS__,
-  #     %__ATTR__ and %__FRIEND__, we need to somehow make them
-  #     available to Class::Declare::Dump, even though they are "my"
-  #     variables in Class::Declare. One option would be to use the
-  #     access control methods that Class::Declare provides to create
-  #     accessor methods, but this would mean further polluting the
-  #     symbol table with a method to pass this information, and
-  #     possibly leave us open to attacks (not sure who would want to
-  #     attack this, but we're trying to design this so it's secure).
-  #     Instead, we simply pass references to anonymous subroutines to
-  #     Class::Declare::Dump::__init__() that permit access to these
-  #     variables.
-  #
-  #     __init__() conditionally defines local variables to the
-  #     references given, and then, to make sure it is not called
-  #     again, removes itself from the symbol table. It then
-  #     overwrites the symbol table entry for
-  #     Class::Declare::dump() with the entry for
-  #     Class::Declare::Dump::dump(), as outlined above.
-  #
-  #     Yes, this is a bit of a hack, but it works :) The aim of
-  #     the hack is to grant access to variables that really
-  #     shouldn't be accessed outside this file (hence the
-  #     closure), but because we don't want the dump() code to be
-  #     loaded all the time (only when necessary), we cheat a
-  #     little :)
-  eval "require $module"
-    and $module->__init__( $__get_attributes__ ,
-                           $__get_values__     ,
-                           $__get_friends__    )
-     # the module wasn't found, so raise a warning and return the
-     # normal stringification of the object/class
-     or warn "Unable to load $module in call to $sub at $file line $line\n"
-             . "$@\n"   # give the original error message
-    and return "$self"; # simply return the stringified object
-
-  # OK, the module was loaded, which will replace this subroutine
-  # in the symbol table, so call ourselves and we'll execute the
-  # proper dump() routine
-  {
-    no strict 'refs';
-
-    unshift @_ , $self;
-    goto &{ $sub };
+  # register the accessor methods
+  #   - these are used in dump() and hash() to access private data used
+  #     by Class::Declare that we don't want to have accessed from outside
+  foreach ( map { join '::' , __PACKAGE__ , $_ }
+                qw( Dump Hash ) ) {
+    # initialise the referencing for the hash() and dump() routines
+    $_->__init__( $__get_attributes__
+                , $__get_values__
+                , $__get_friends__
+                );
   }
-}; # $__extern()
-
-
-sub dump : locked method { __PACKAGE__->class( $_[0] ); $__extern->( @_ ); }
+}
 
 
 =item B<hash(> [ I<param> => I<value> ] B<)>
@@ -2088,9 +2036,8 @@ output to the given recursive depth. A depth of C<0> will display the target's
 attributes, but will not expand those attribute values. B<hash()> will descend
 C<ARRAY> and C<HASH> references if asked to recurse.
 
-
 =cut
-sub hash : locked method { __PACKAGE__->class( $_[0] ); $__extern->( @_ ); }
+
 
 } # end Class admin closure
 
@@ -2252,7 +2199,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1.69 $';
+               $REVISION = '$Revision: 1509 $';
 
   ...
 

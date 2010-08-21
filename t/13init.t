@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: 13init.t,v 1.1 2006-01-31 21:38:04 ian Exp $
+# $Id: 13init.t 1511 2010-08-21 23:24:49Z ian $
 
 # init.t
 #
 # Ensure object initialisers are handled correctly.
 
 use strict;
-use Test::More	tests => 103;
+use Test::More  tests => 103;
 use Test::Exception;
 
 # We need to test whether
@@ -28,8 +28,8 @@ use base qw( Class::Declare );
 
 __PACKAGE__->declare( public => { attribute => 1 } ,
                       init   => sub {
-                      	my	$self	= __PACKAGE__->public( shift );
-                        	$self->attribute	*= 2;
+                        my  $self = __PACKAGE__->public( shift );
+                          $self->attribute  *= 2;
 
                         return 1;
                       } # init()
@@ -41,7 +41,7 @@ __PACKAGE__->declare( public => { attribute => 1 } ,
 package main;
 
 # test to see if we can create an instance of Test::Init::One
-my	$object;
+my  $object;
 lives_ok { $object = Test::Init::One->new }
          'constructor with init() executes';
 # ensure the value returned is a valid object
@@ -71,7 +71,7 @@ use base qw( Class::Declare );
 
 __PACKAGE__->declare( public => { attribute => 1 } ,
                       init   => sub { undef }      );
-					  
+            
 1;
 
 # return to main for testing
@@ -83,46 +83,46 @@ package main;
 
 # can we declare a package whose init() is defined but not a CODEREF?
  dies_ok {
- 	package Test::Init::Three;
-	use strict;
-	use base qw( Class::Declare );
-	__PACKAGE__->declare( init => 1 );
-	1;
+  package Test::Init::Three;
+  use strict;
+  use base qw( Class::Declare );
+  __PACKAGE__->declare( init => 1 );
+  1;
 } 'numerical init value fails';
  dies_ok {
- 	package Test::Init::Four;
-	use strict;
-	use base qw( Class::Declare );
-	__PACKAGE__->declare( init => "cat" );
-	1;
+  package Test::Init::Four;
+  use strict;
+  use base qw( Class::Declare );
+  __PACKAGE__->declare( init => "cat" );
+  1;
 } 'string init value fails';
  dies_ok {
- 	package Test::Init::Five;
-	use strict;
-	use base qw( Class::Declare );
-	__PACKAGE__->declare( init => \1 );
-	1;
+  package Test::Init::Five;
+  use strict;
+  use base qw( Class::Declare );
+  __PACKAGE__->declare( init => \1 );
+  1;
 } 'scalar reference init value fails';
  dies_ok {
- 	package Test::Init::Six;
-	use strict;
-	use base qw( Class::Declare );
-	__PACKAGE__->declare( init => [ 1 ] );
-	1;
+  package Test::Init::Six;
+  use strict;
+  use base qw( Class::Declare );
+  __PACKAGE__->declare( init => [ 1 ] );
+  1;
 } 'array reference init value fails';
  dies_ok {
- 	package Test::Init::Seven;
-	use strict;
-	use base qw( Class::Declare );
-	__PACKAGE__->declare( init => { a => 1 } );
-	1;
+  package Test::Init::Seven;
+  use strict;
+  use base qw( Class::Declare );
+  __PACKAGE__->declare( init => { a => 1 } );
+  1;
 } 'hash reference init value fails';
 lives_ok {
- 	package Test::Init::Eight;
-	use strict;
-	use base qw( Class::Declare );
-	__PACKAGE__->declare( init => undef );
-	1;
+  package Test::Init::Eight;
+  use strict;
+  use base qw( Class::Declare );
+  __PACKAGE__->declare( init => undef );
+  1;
 } 'undefined init value succeeds';
 
 
@@ -186,8 +186,8 @@ use strict;
 use base qw( Test::Init::Ten );
 
 __PACKAGE__->declare( init   => sub {
-                      	my	$self	= __PACKAGE__->public( shift );
-                        	$self->attribute	+= 3;
+                        my  $self = __PACKAGE__->public( shift );
+                          $self->attribute  += 3;
 
                         return 1;
                       } # init()
@@ -247,8 +247,8 @@ use base qw( Class::Declare );
 
 __PACKAGE__->declare( public => { attribute => 1 } ,
                       init   => sub {
-                      	my	$self	= __PACKAGE__->public( shift );
-                        	$self->attribute	+= 3;
+                        my  $self = __PACKAGE__->public( shift );
+                          $self->attribute  += 3;
 
                         return 1;
                       } # init()
@@ -337,14 +337,14 @@ ok( $object->attribute == 4 ,
 # protected, etc attributes and methods
 #   - let's automate this to save on typing
 foreach my $type ( qw( class static restricted public private protected ) ) {
-	local	$@;
+  local $@;
 
-	# we need to test both attributes and methods
-	foreach my $target ( qw( attribute method ) ) {
-		# define the package for this type of attribute/method
-		my	$pkg	= 'Test::Init::' . join( '::' , map { ucfirst }
-		  	    	                                    ( $type , $target ) );
-		my	$dfn	= <<__EODfN__;
+  # we need to test both attributes and methods
+  foreach my $target ( qw( attribute method ) ) {
+    # define the package for this type of attribute/method
+    my  $pkg  = 'Test::Init::' . join( '::' , map { ucfirst }
+                                                  ( $type , $target ) );
+    my  $dfn  = <<__EODfN__;
 package $pkg;
 
 use strict;
@@ -352,56 +352,56 @@ use base qw( Class::Declare );
 
 __PACKAGE__->declare( $type => { attribute => 1 } ,
                       init  => sub {
-                      	my	\$self	= __PACKAGE__->public( shift );
-						  	\$self->$target;
+                        my  \$self  = __PACKAGE__->public( shift );
+                \$self->$target;
                       }
-					);
+          );
 
 sub method
 {
-	my	\$self	= __PACKAGE__->$type( shift );
-	# NB: if we're dealing with a public, private or protected attribute
-	#     then we should skip the value change as they are essentially
-	#     constant
-		\$self->attribute	*= 2		unless (    '$type' eq 'class'
-		                 	    		         || '$type' eq 'static'
-		                 	    		         || '$type' eq 'restricted' );
-	1;
+  my  \$self  = __PACKAGE__->$type( shift );
+  # NB: if we're dealing with a public, private or protected attribute
+  #     then we should skip the value change as they are essentially
+  #     constant
+    \$self->attribute *= 2    unless (    '$type' eq 'class'
+                                       || '$type' eq 'static'
+                                       || '$type' eq 'restricted' );
+  1;
 } # method()
 
 # we need a routine that can access all types of attributes, but just
 # public and class, but static, private, etc
 sub cmp
 {
-	my	\$self	= __PACKAGE__->public( shift );
-	return ( \$self->attribute == shift );
+  my  \$self  = __PACKAGE__->public( shift );
+  return ( \$self->attribute == shift );
 } # cmp()
 
 1;
 __EODfN__
 
-		# make sure the class compiles
-		eval $dfn;
-		warn $@	if ( $@ );
-		ok ( ! $@ , "$pkg package compiled successfully" );
+    # make sure the class compiles
+    eval $dfn;
+    warn $@ if ( $@ );
+    ok ( ! $@ , "$pkg package compiled successfully" );
 
-		# now, make sure we can create an instance of this class
-		my	$object;
-		lives_ok { $object = $pkg->new } "$pkg object creation executes";
+    # now, make sure we can create an instance of this class
+    my  $object;
+    lives_ok { $object = $pkg->new } "$pkg object creation executes";
 
-		# make sure the returned object is defined and is of the right type
-		ok( defined $object , "$pkg object is defined" );
-		ok( ref( $object ) eq $pkg , "$pkg creation returns correct object" );
+    # make sure the returned object is defined and is of the right type
+    ok( defined $object , "$pkg object is defined" );
+    ok( ref( $object ) eq $pkg , "$pkg creation returns correct object" );
 
-		# if we've called the method, and we're dealing with an
-		# instance-type attribute (i.e. public, private or protected), then
-		# the attribute should equal 2, otherwise it should equal 1
-		ok( $object->cmp( ( $target eq 'method' )
-		                    ? (    $type eq 'public'
-		                        || $type eq 'private'
-		                        || $type eq 'protected' ) ? 2 : 1
-		                    : 1 ) ,
-		    "$pkg initialisation performed successfully"      );
-	}
+    # if we've called the method, and we're dealing with an
+    # instance-type attribute (i.e. public, private or protected), then
+    # the attribute should equal 2, otherwise it should equal 1
+    ok( $object->cmp( ( $target eq 'method' )
+                        ? (    $type eq 'public'
+                            || $type eq 'private'
+                            || $type eq 'protected' ) ? 2 : 1
+                        : 1 ) ,
+        "$pkg initialisation performed successfully"      );
+  }
 }
 

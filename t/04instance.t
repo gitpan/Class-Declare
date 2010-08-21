@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
-# $Id: 04instance.t,v 1.6 2006-01-31 21:38:03 ian Exp $
+# $Id: 04instance.t 1511 2010-08-21 23:24:49Z ian $
 
 # instance.t
 #
 # Ensure multiple instances have separate attribute namespaces.
 
 use strict;
-use Test::More	tests => 7;
+use Test::More  tests => 7;
 
 # Declare the Class::Declare-derived package
 package Test::Instance;
@@ -27,44 +27,44 @@ __PACKAGE__->declare( public     => { mypublic     => \1 } ,
 # worry then about public/private/etc access problems)
 sub cmp_public
 {
-	my	$self		= __PACKAGE__->class( shift );
-	my	( $a , $b )	= @_;
-		( $a->mypublic == $b->mypublic );
+  my  $self   = __PACKAGE__->class( shift );
+  my  ( $a , $b ) = @_;
+    ( $a->mypublic == $b->mypublic );
 } # cmp_public()
 
 sub cmp_private
 {
-	my	$self		= __PACKAGE__->class( shift );
-	my	( $a , $b )	= @_;
-		( $a->myprivate == $b->myprivate );
+  my  $self   = __PACKAGE__->class( shift );
+  my  ( $a , $b ) = @_;
+    ( $a->myprivate == $b->myprivate );
 } # cmp_private()
 
 sub cmp_protected
 {
-	my	$self		= __PACKAGE__->class( shift );
-	my	( $a , $b )	= @_;
-		( $a->myprotected == $b->myprotected );
+  my  $self   = __PACKAGE__->class( shift );
+  my  ( $a , $b ) = @_;
+    ( $a->myprotected == $b->myprotected );
 } # cmp_protected()
 
 sub cmp_class
 {
-	my	$self		= __PACKAGE__->class( shift );
-	my	( $a , $b )	= @_;
-		( $a->myclass == $b->myclass );
+  my  $self   = __PACKAGE__->class( shift );
+  my  ( $a , $b ) = @_;
+    ( $a->myclass == $b->myclass );
 } # cmp_class()
 
 sub cmp_static
 {
-	my	$self		= __PACKAGE__->class( shift );
-	my	( $a , $b )	= @_;
-		( $a->mystatic == $b->mystatic );
+  my  $self   = __PACKAGE__->class( shift );
+  my  ( $a , $b ) = @_;
+    ( $a->mystatic == $b->mystatic );
 } # cmp_static()
 
 sub cmp_restricted
 {
-	my	$self		= __PACKAGE__->class( shift );
-	my	( $a , $b )	= @_;
-		( $a->myrestricted == $b->myrestricted );
+  my  $self   = __PACKAGE__->class( shift );
+  my  ( $a , $b ) = @_;
+    ( $a->myrestricted == $b->myrestricted );
 } # cmp_restricted()
 
 1;
@@ -74,8 +74,8 @@ sub cmp_restricted
 package main;
 
 # create two instances
-my	$obj1	= Test::Instance->new;
-my	$obj2	= Test::Instance->new;
+my  $obj1 = Test::Instance->new;
+my  $obj2 = Test::Instance->new;
 
 # ensure the instances are different
 ok( $obj1 != $obj2 , 'multiple distinct instance creation successful' );

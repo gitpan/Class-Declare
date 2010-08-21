@@ -1,16 +1,13 @@
---- #YAML:1.0
-name:                Class-Declare
-version:             0.13
-abstract:            Declare classes with public, private and protected
-license:             ~
-author:              
-    - Ian Brayshaw <ian@onemore.org>
-generated_by:        ExtUtils::MakeMaker version 6.42
-distribution_type:   module
-requires:     
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Class-Declare
+version:      0.14
+version_from: Declare.pm
+installdirs:  site
+requires:
     Storable:                      0
     Test::Exception:               0.15
     Test::More:                    0
-meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
-    version: 1.3
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17

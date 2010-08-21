@@ -5,6 +5,7 @@ Declare/Hash.pm
 Makefile.PL
 MANIFEST
 README
+META.yml
 t/Class/Declare/Test.pm
 t/01compile.t
 t/02declare.t
@@ -34,4 +35,3 @@ t/25modifiers.t
 t/26readonly.t
 t/27readwrite.t
 t/28hash.t
-META.yml                                 Module meta-data (added by MakeMaker)

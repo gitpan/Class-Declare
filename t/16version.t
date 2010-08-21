@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 16version.t,v 1.1 2006-01-31 21:38:04 ian Exp $
+# $Id: 16version.t 1511 2010-08-21 23:24:49Z ian $
 
 # version.t
 #
@@ -13,7 +13,7 @@ package Test::Version::One;
 
 use base qw( Class::Declare );
 use vars qw( $VERSION       );
-             $VERSION	= '0.04';
+             $VERSION = '0.04';
 
 1;
 
@@ -33,7 +33,7 @@ package Test::Version::Two;
 
 use base qw( Class::Declare );
 use vars qw( $REVISION      );
-             $REVISION	= '$Rev' . 'ision: 1.2.3 $';
+             $REVISION  = '$Rev' . 'ision: 1.2.3 $';
 
 1;
 
@@ -57,8 +57,8 @@ package Test::Version::Three;
 
 use base qw( Class::Declare     );
 use vars qw( $REVISION $VERSION );
-             $REVISION	= '$Rev' . 'ision: 1.2.3 $';
-			 $VERSION	= '0.4';
+             $REVISION  = '$Rev' . 'ision: 1.2.3 $';
+       $VERSION = '0.4';
 
 1;
 

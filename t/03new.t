@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 03new.t,v 1.7 2007-03-05 01:45:43 ian Exp $
+# $Id: 03new.t 1511 2010-08-21 23:24:49Z ian $
 
 # new.t
 #
@@ -29,7 +29,7 @@ __PACKAGE__->declare( public    => { mypublic    => 1 } ,
 package main;
 
 # does object creation work
-my	$obj;
+my  $obj;
 lives_ok { $obj = Test::New::One->new } 'object creation succeeds';
 
 # is $obj an object?
@@ -79,7 +79,7 @@ __PACKAGE__->declare( class  => 'my_class'  ,
 # return to main to resume testing
 package main;
 
-my	$class	= 'Test::New::Two';
+my  $class  = 'Test::New::Two';
 
 # make sure the new() call lives
 lives_ok { $obj = $class->new }

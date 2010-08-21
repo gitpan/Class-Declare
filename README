@@ -906,13 +906,6 @@ DESCRIPTION
         object of the dump() call, and not any subsequent recursive calls to
         dump() used to display nested objects.
 
-        The code to implement dump() is quite long, and so has been split
-        into a separate module Class::Declare::Dump. The first time dump()
-        is called on a Class::Declare-derived object or class,
-        Class::Declare::Dump is loaded, and the dump generated. If the
-        loading of Class::Declare::Dump fails, a warning is given, and
-        dump() returns the stringification of the given class or instance.
-
     hash( [ *param* => *value* ] )
         Return a hash representing the values of the attributes of the class
         or object (depending on how hash() is called. hash() supports the
@@ -1017,7 +1010,7 @@ DESCRIPTION
           use strict;
           use base qw( Class::Declare );
           use vars qw( $REVISION      );
-                       $REVISION = '$Revision: 1.15 $';
+                       $REVISION = '$Revision: 1510 $';
 
           ...
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Dump.pm,v 1.31 2008-07-07 15:20:59 ian Exp $
+# $Id: Dump.pm 1509 2010-08-21 23:10:21Z ian $
 package Class::Declare::Dump;
 
 use strict;
@@ -20,7 +20,7 @@ L<Class::Declare>, providing the B<dump()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1.31 $';
+  $REVISION = '$Revision: 1509 $';
   $VERSION  = Class::Declare->VERSION;
 
 
@@ -51,7 +51,7 @@ a L<Class::Declare>-derived object or package.
   # give access to the %__ATTR__, %__FRIEND__ and %__DEFN__ hashes of
   # Class::Declare. See the comment in Class::Declare::dump() for an
   # explanation.
-  sub __init__ : locked method
+  sub __init__ : method
   {
     my  $class  = __PACKAGE__->class( shift );
     # what's our method name?
@@ -351,10 +351,14 @@ a L<Class::Declare>-derived object or package.
     }; # $__clear__()
 
 
+# jump into the Class::Declare namespace to create the dump() routine
+package Class::Declare;
+
+
 # dump()
 #
 # Generate a textual representation of the object/class
-sub dump : locked method
+sub dump : method
 {
   my  $self   = Class::Declare->class( shift );
   my  $class  = ref( $self ) || $self;

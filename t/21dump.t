@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
-# $Id: 21dump.t,v 1.4 2007-06-04 08:21:17 ian Exp $
+# $Id: 21dump.t 1511 2010-08-21 23:24:49Z ian $
 
 # dump.t
 #
 # Ensure dump() behaves as it should.
 
-use Test::More      tests => 69;
+use Test::More      tests => 63;
 use Test::Exception;
 
 # firstly, create a package that we can generate a dump of
@@ -15,7 +15,7 @@ package Test::Dump::Zero;
 use strict;
 use base qw( Class::Declare );
 
-# add a reoutine for calling dump()
+# add a routine for calling dump()
 sub parent
 {
   my  $self = __PACKAGE__->class( shift );
@@ -30,25 +30,25 @@ use strict;
 use base qw( Test::Dump::Zero );
 
 {
-	my	$array		= [ 1 , 2 , 3 , 4 ];
-	my	$hash		  = { key => 'value' };
-	my	$code		  = sub { rand };
-	my	$friends	= [ qw( main::dump Test::Dump::Three ) ];
+  my  $array    = [ 1 , 2 , 3 , 4 ];
+  my  $hash     = { key => 'value' };
+  my  $code     = sub { rand };
+  my  $friends  = [ qw( main::dump Test::Dump::Three ) ];
 
 __PACKAGE__->declare( class      => { my_class      => 1      } ,
                       static     => { my_static     => $code  } ,
-					            restricted => { my_restricted => $array } ,
-					            public     => { my_public     => $hash  } ,
-					            private    => { my_private    => undef  } ,
-					            protected  => { my_protected  => $hash  } ,
+                      restricted => { my_restricted => $array } ,
+                      public     => { my_public     => $hash  } ,
+                      private    => { my_private    => undef  } ,
+                      protected  => { my_protected  => $hash  } ,
                       abstract   =>  'my_abstract'              ,
-					            friends    =>  $friends                   );
+                      friends    =>  $friends                   );
 
 # add a routine for calling the dump()
 sub call
 {
-	my	$self	= __PACKAGE__->class( shift );
-		  $self->dump;
+  my  $self = __PACKAGE__->class( shift );
+      $self->dump;
 } # call()
 
 }
@@ -58,97 +58,19 @@ sub call
 # return to main for the tests
 package main;
 
-# firstly, we want to know that the fall-back behaviour of dump() works
-# i.e. is Class::Declare::Dump cannot be loaded, raise a warning and simply
-# stringify the target (either the class or the object)
-my	$class	= 'Test::Dump::One';
-my	$object	= $class->new;
-{
-    # since Perl versions post-5.8.x (not sure of the exact 'x', but
-    # thanks to a bug report from Slaven Rezic [#48499] known to be
-    # in v5.8.9) the old test based on an empty @INC fails
-    #   - this is because Test::Builder attempts to load 'overload.pm'
-    #     during one of the tests, and @INC is empty, causing a failure
-    #   - so now we try something different
-    #       - we load a version of Class::Declare::Dump that will
-    #         result in a failure report from dump() as would be
-    #         expected if we couldn't load Class::Declare::Dump at all
-    #       - we then clean up after this test, pretending that we
-    #         haven't loaded Class::Declare::Dump before, to ensure
-    #         the subsequent tests can be run
-    #       - first we add the current directory to the front of @INC
-    #         to ensure we find the test version of Class::Declare::Dump
-    #       - then after these few tests, we remove all reference to
-    #         Class::Declare::Dump from %INC and the symbol table
-    #
-    # see https://rt.cpan.org/Ticket/Display.html?id=48499
+# create a test instance
+my  $class  = 'Test::Dump::One';
+my  $object = $class->new;
 
-    use File::Basename;
-
-	local	@INC	= @INC;             # localise INC before modifying it
-    unshift @INC , dirname __FILE__;    # ensure we find test modules first
-
-	# extract the dump string, trapping the warning
-	my		$warning;
-	local	$SIG{ __WARN__ }	= sub { $warning .= $_	foreach ( @_ ) };
-	undef $warning;
-
-	my	$dump	= $class->dump;
-	# make sure the dump string is the class name
-	ok( $dump eq $class ,
-	    "Class::Declare::Dump load failure: correct report" );
-	# make sure the warning string starts with Unable to load
-	ok( $warning =~ m/^Unable to load/o ,
-	    "Class::Declare::Dump load failure: correct error report" );
-
-	# repeat these tests with the object instance
-		undef $warning;
-		$dump	= $object->dump;
-	# make sure the dump string is the stringified object reference
-	ok( $dump =~ m/^$class=SCALAR\(0x[\da-f]+\)$/o ,
-	    "Class::Declare::Dump load failure: correct report" );
-	# make sure the warning string starts with Unable to load
-	ok( $warning =~ m/^Unable to load/o ,
-	    "Class::Declare::Dump load failure: correct error report" );
-
-    # pretend that Class::Declare::Dump has not been loaded
-    #   - remove 'Class::Declare::Dump::__init__()' from the symbol table
-    #   - remove 'Class::Declare::Dump' from %INC
-    # once this is done, the remaining tests will load the real
-    # Class::Declare::Dump module to test its behaviour
-    {
-        no strict 'refs';
-
-        undef *{ 'Class::Declare::Dump::__init__' };
-        delete $INC{ 'Class/Declare/Dump.pm' };
-    }
-}
-
-# OK, now we need to make sure Class::Declare::Dump can be loaded and there
-# are no errors
-{
-	my		$warning;
-	local	$SIG{ __WARN__ }	= sub { $warning .= $_	foreach ( @_ ) };
-
-	undef $warning;
-	my	$dump	= $class->dump;
-	# make sure there were no warnings
-	ok( ! defined $warning , "Class::Declare::Dump loaded successfully" );
-	# make sure the dump string is no equal to the class name
-	# i.e. this tests to see if the original dump() method or a replacement
-	#      method has been used to generate the dump.
-	ok( $dump ne $class ,
-	    "Class::Declare::Dump::dump() replaced Class::Declare::dump()" );
-}
 
 #
 # define the expected results strings
 #
 
-my	$result	= {
+my  $result = {
 
-		# class only
-		class => <<__EOR__ ,
+    # class only
+    class => <<__EOR__ ,
 Test::Dump::(?:One|Two)
     abstract:
         my_abstract
@@ -156,8 +78,8 @@ Test::Dump::(?:One|Two)
         my_class    = 1
 __EOR__
 
-		# class & restricted only
-		restricted =>
+    # class & restricted only
+    restricted =>
 qr#^Test::Dump::(?:One|Two)
     abstract:
         my_abstract
@@ -167,8 +89,8 @@ qr#^Test::Dump::(?:One|Two)
         my_restricted = \[ 1, 2, 3, 4 \]
 $# ,
 
-		# class, static & restricted only
-		static =>
+    # class, static & restricted only
+    static =>
 qr#^Test::Dump::(?:One|Two)
     abstract:
         my_abstract
@@ -180,8 +102,8 @@ qr#^Test::Dump::(?:One|Two)
         my_restricted = \[ 1, 2, 3, 4 \]
 $# ,
 
-		# class & public only
-		public => 
+    # class & public only
+    public => 
 qr#^Test::Dump::(?:One|Two)=SCALAR\(0x[a-f\d]+\)
     abstract:
         my_abstract
@@ -191,8 +113,8 @@ qr#^Test::Dump::(?:One|Two)=SCALAR\(0x[a-f\d]+\)
         my_public   = { 'key' => 'value' }
 $# ,
 
-		# class, restricted, public & protected only
-		protected =>
+    # class, restricted, public & protected only
+    protected =>
 qr#^Test::Dump::(One|Two)=SCALAR\(0x([a-f\d]+)\)
     abstract:
         my_abstract
@@ -206,8 +128,8 @@ qr#^Test::Dump::(One|Two)=SCALAR\(0x([a-f\d]+)\)
         my_protected  = Test::Dump::\1=SCALAR\(0x\2\)->my_public
 $# ,
 
-		# all attributes
-		private =>
+    # all attributes
+    private =>
 qr#^Test::Dump::(One|Two)=SCALAR\(0x([a-f\d]+)\)
     abstract:
         my_abstract
@@ -223,42 +145,42 @@ qr#^Test::Dump::(One|Two)=SCALAR\(0x([a-f\d]+)\)
         my_private    = undef
     protected:
         my_protected  = Test::Dump::\1=SCALAR\(0x\2\)->my_public
-$#	
-	};
+$#  
+  };
 
 
-my	$dump;	# hold the output from the current dump
+my  $dump;  # hold the output from the current dump
 
 # OK, on 64-bit machines, the comparisons here will raise warnings about
 # hexadecimal values being too great (i.e. not portable)
 #   - that's OK, just ignore the warnings
 {
-	local	$^W	= 0;	# disable error reporting for this section
+  local $^W = 0;  # disable error reporting for this section
 
-	# Now we need to verify that when we dump a class in an unrelated
-	# environment (e.g. from main), we get only the class attribute
-		$dump	= $class->dump;
-	# OK, the dump should be the following
-		ok( $dump =~ $result->{ class } ,
-		    "Expected result from class dump in unrelated scope" );
-	# OK, a dump of the object should include public attributes as well
-		$dump	= $object->dump;
-	# here the result is a regular expression since we cannot know the memory
-	# address of the object
-		ok( $dump =~ $result->{ public } ,
-		    "Expected result from object dump in unrelated scope" );
+  # Now we need to verify that when we dump a class in an unrelated
+  # environment (e.g. from main), we get only the class attribute
+    $dump = $class->dump;
+  # OK, the dump should be the following
+    ok( $dump =~ $result->{ class } ,
+        "Expected result from class dump in unrelated scope" );
+  # OK, a dump of the object should include public attributes as well
+    $dump = $object->dump;
+  # here the result is a regular expression since we cannot know the memory
+  # address of the object
+    ok( $dump =~ $result->{ public } ,
+        "Expected result from object dump in unrelated scope" );
 
-	# OK, now let's take a dump from within the class - this time we should be
-	# granted access to all types of attributes
-		$dump	= $class->call;
-	# we should see class, static and restricted attributes
-		ok( $dump =~ $result->{ static } ,
-		    "Expected result from class dump in own scope" );
-	# now dump an object within it's own scope
-		$dump	= $object->call;
-	# should get all types of attributes
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from object dump in own scope" );
+  # OK, now let's take a dump from within the class - this time we should be
+  # granted access to all types of attributes
+    $dump = $class->call;
+  # we should see class, static and restricted attributes
+    ok( $dump =~ $result->{ static } ,
+        "Expected result from class dump in own scope" );
+  # now dump an object within it's own scope
+    $dump = $object->call;
+  # should get all types of attributes
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from object dump in own scope" );
 } # end of ignore warnings
 
 
@@ -272,8 +194,8 @@ use base qw( Test::Dump::One );
 # add a local routine for calling dump()
 sub dispatch
 {
-	my	$self	= __PACKAGE__->class( shift );
-		$self->dump;
+  my  $self = __PACKAGE__->class( shift );
+    $self->dump;
 } # dispatch()
 
 1;
@@ -282,76 +204,76 @@ sub dispatch
 package main;
 
 # OK, now take a dump from within a derived class
-	$class	= 'Test::Dump::Two';
+  $class  = 'Test::Dump::Two';
 
 # again, ignore warnings
 {
-	local	$^W	= 0;
+  local $^W = 0;
 
-	# from within the derived class we should see class and
-	# restricted attributes
-		$dump	= $class->dispatch;
-		ok( $dump =~ $result->{ restricted } ,
-		    "Expected result from inherited class dump in own scope" );
+  # from within the derived class we should see class and
+  # restricted attributes
+    $dump = $class->dispatch;
+    ok( $dump =~ $result->{ restricted } ,
+        "Expected result from inherited class dump in own scope" );
 
-	# if we inherit the dump() call, we should also have access to static
-	# attributes from within the base class
-		$dump	= $class->call;
-		ok( $dump =~ $result->{ static } ,
-		    "Expected result from inherited class dump in inherited scope" );
+  # if we inherit the dump() call, we should also have access to static
+  # attributes from within the base class
+    $dump = $class->call;
+    ok( $dump =~ $result->{ static } ,
+        "Expected result from inherited class dump in inherited scope" );
 
-	# OK, now repeat these last two tests with derived objects instead of
-	# classes
-		$object	= $class->new;
+  # OK, now repeat these last two tests with derived objects instead of
+  # classes
+    $object = $class->new;
 
-	# from within the derived object we should see class, restricted,
-	# public and protected attributes
-		$dump	= $object->dispatch;
-	# NB: this also tests (as done before) the correct attribution of previously
-	#     seen reference values
-		ok( $dump =~ $result->{ protected } ,
-		    "Expected result from derived object dump() in own scope" );
+  # from within the derived object we should see class, restricted,
+  # public and protected attributes
+    $dump = $object->dispatch;
+  # NB: this also tests (as done before) the correct attribution of previously
+  #     seen reference values
+    ok( $dump =~ $result->{ protected } ,
+        "Expected result from derived object dump() in own scope" );
 
-	# now examine the output from the inherited method: we should see static and
-	# private attributes as well
-		$dump	= $object->call;
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from derived object dump() in inherited scope" );
+  # now examine the output from the inherited method: we should see static and
+  # private attributes as well
+    $dump = $object->call;
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from derived object dump() in inherited scope" );
 
-	# Now test the behaviour of dump() on derived classes/objects in an
-	# unrelated scope
+  # Now test the behaviour of dump() on derived classes/objects in an
+  # unrelated scope
 
-	# from an unrelated scope, the class should show class attributes only
-		$dump	= $class->dump;
-		ok( $dump =~ $result->{ class } ,
-		    "Expected result from inherited class dump in unrelated scope" );
+  # from an unrelated scope, the class should show class attributes only
+    $dump = $class->dump;
+    ok( $dump =~ $result->{ class } ,
+        "Expected result from inherited class dump in unrelated scope" );
 
-	# for an object, class and public attributes should be accessible
-		$dump	= $object->dump;
-		ok( $dump =~ $result->{ public } ,
-		    "Expected result from derived object dump in unrelated scope" );
-
-
-	#
-	# test that dump() honours class friends
-	#
-
-	# define main::dump(), which is a friend of Test::Dump::One
-	sub main::dump($)	{ $_[ 0 ]->dump; } # main::dump()
+  # for an object, class and public attributes should be accessible
+    $dump = $object->dump;
+    ok( $dump =~ $result->{ public } ,
+        "Expected result from derived object dump in unrelated scope" );
 
 
-	# for Test::Dump::One, main::dump() should report class, static and
-	# restricted attributes
-		$class	= 'Test::Dump::One';
-		$dump	= main::dump( $class );
-		ok( $dump =~ $result->{ static } ,
-		    "Expected result from friend method in class dump" );
+  #
+  # test that dump() honours class friends
+  #
 
-	# for a Test::Dump::One object, main::dump() should report all attributes
-		$object	= $class->new;
-		$dump	= main::dump( $object );
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from friend method in object dump" );
+  # define main::dump(), which is a friend of Test::Dump::One
+  sub main::dump($) { $_[ 0 ]->dump; } # main::dump()
+
+
+  # for Test::Dump::One, main::dump() should report class, static and
+  # restricted attributes
+    $class  = 'Test::Dump::One';
+    $dump = main::dump( $class );
+    ok( $dump =~ $result->{ static } ,
+        "Expected result from friend method in class dump" );
+
+  # for a Test::Dump::One object, main::dump() should report all attributes
+    $object = $class->new;
+    $dump = main::dump( $object );
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from friend method in object dump" );
 
 } # end of ignore warnings
 
@@ -365,10 +287,10 @@ use base qw( Class::Declare );
 # define a print() routine that calls dump() on it's first argument
 sub print
 {
-	my	$self	= __PACKAGE__->class( shift );
-	my	$target	= shift;
+  my  $self = __PACKAGE__->class( shift );
+  my  $target = shift;
 
-		$target->dump;
+    $target->dump;
 } # print()
 
 1;
@@ -378,34 +300,34 @@ package main;
 
 { # again, ignore warnings
 
-	local	$^W	= 0;
+  local $^W = 0;
 
-	# For Test::Dump::One, Test::Dump::Three and instances of it should report
-	# class, static and restricted attributes
-		$class	= 'Test::Dump::Three';
-		$dump	= $class->print( 'Test::Dump::One' );
-		ok( $dump =~ $result->{ static } ,
-		    "Expected result from friend class in class dump" );
+  # For Test::Dump::One, Test::Dump::Three and instances of it should report
+  # class, static and restricted attributes
+    $class  = 'Test::Dump::Three';
+    $dump = $class->print( 'Test::Dump::One' );
+    ok( $dump =~ $result->{ static } ,
+        "Expected result from friend class in class dump" );
 
-	# for a Test::Dump::One instance we should get all attributes
-		$dump	= $class->print( Test::Dump::One->new );
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from friend class in object dump" );
+  # for a Test::Dump::One instance we should get all attributes
+    $dump = $class->print( Test::Dump::One->new );
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from friend class in object dump" );
 
 
-	# OK, now repeat these tests with instances of Test::Dump::Three
+  # OK, now repeat these tests with instances of Test::Dump::Three
 
-	# For Test::Dump::One, Test::Dump::Three and instances of it should report
-	# class, static and restricted attributes
-		$object	= $class->new;
-		$dump	= $object->print( 'Test::Dump::One' );
-		ok( $dump =~ $result->{ static } ,
-		    "Expected result from friend object in class dump" );
+  # For Test::Dump::One, Test::Dump::Three and instances of it should report
+  # class, static and restricted attributes
+    $object = $class->new;
+    $dump = $object->print( 'Test::Dump::One' );
+    ok( $dump =~ $result->{ static } ,
+        "Expected result from friend object in class dump" );
 
-	# for a Test::Dump::One instance we should get all attributes
-		$dump	= $object->print( Test::Dump::One->new );
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from friend object in object dump" );
+  # for a Test::Dump::One instance we should get all attributes
+    $dump = $object->print( Test::Dump::One->new );
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from friend object in object dump" );
 
 } # end of ignore warnings
 
@@ -422,10 +344,10 @@ use base qw( Test::Dump::Three );
 # method inheritance within the derived friend class
 sub show
 {
-	my	$self	= __PACKAGE__->class( shift );
-	my	$target	= shift;
+  my  $self = __PACKAGE__->class( shift );
+  my  $target = shift;
 
-		$target->dump;
+    $target->dump;
 } # show()
 
 1;
@@ -435,63 +357,63 @@ package main;
 
 { # again, ignore warnings
 
-	local	$^W	= 0;
+  local $^W = 0;
 
-	# here, show() is not an inherited method, so we should only see class
-	# attributes
-		$class	= 'Test::Dump::Four';
-		$dump	= $class->show( 'Test::Dump::One' );;
-		ok( $dump =~ $result->{ class } ,
-		    "Expected result from inherited friend class in "
-			. "local class scope" );
+  # here, show() is not an inherited method, so we should only see class
+  # attributes
+    $class  = 'Test::Dump::Four';
+    $dump = $class->show( 'Test::Dump::One' );;
+    ok( $dump =~ $result->{ class } ,
+        "Expected result from inherited friend class in "
+      . "local class scope" );
 
-	# for an object, only class and public attributes should be accessible
-		$dump	= $class->show( Test::Dump::One->new );
-		ok( $dump =~ $result->{ public } ,
-		    "Expected result from inherited friend class in "
-			. "local object scope" );
+  # for an object, only class and public attributes should be accessible
+    $dump = $class->show( Test::Dump::One->new );
+    ok( $dump =~ $result->{ public } ,
+        "Expected result from inherited friend class in "
+      . "local object scope" );
 
-	# now, if we use the inherited print() method then we should see class,
-	# static and restricted attributes for a class target, and all attributes
-	# for an instance target
-		$dump	= $class->print( 'Test::Dump::One' );
-		ok( $dump =~ $result->{ static } ,
-		    "Expected result from inherited friend class in "
-			. "derived class scope" );
+  # now, if we use the inherited print() method then we should see class,
+  # static and restricted attributes for a class target, and all attributes
+  # for an instance target
+    $dump = $class->print( 'Test::Dump::One' );
+    ok( $dump =~ $result->{ static } ,
+        "Expected result from inherited friend class in "
+      . "derived class scope" );
 
-	# for a Test::Dump::One instance we should get all attributes
-		$dump	= $class->print( Test::Dump::One->new );
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from inherited friend class in "
-			. "derived object scope" );
+  # for a Test::Dump::One instance we should get all attributes
+    $dump = $class->print( Test::Dump::One->new );
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from inherited friend class in "
+      . "derived object scope" );
 
-	# repeat the above tests for derived instances
+  # repeat the above tests for derived instances
 
-		$object	= $class->new;
-		$dump	= $object->show( 'Test::Dump::One' );;
-		ok( $dump =~ $result->{ class } ,
-		    "Expected result from derived friend object in "
-			. "local class scope" );
+    $object = $class->new;
+    $dump = $object->show( 'Test::Dump::One' );;
+    ok( $dump =~ $result->{ class } ,
+        "Expected result from derived friend object in "
+      . "local class scope" );
 
-	# for an object, only class and public attributes should be accessible
-		$dump	= $object->show( Test::Dump::One->new );
-		ok( $dump =~ $result->{ public } ,
-		    "Expected result from derived friend object in "
-			. "local object scope" );
+  # for an object, only class and public attributes should be accessible
+    $dump = $object->show( Test::Dump::One->new );
+    ok( $dump =~ $result->{ public } ,
+        "Expected result from derived friend object in "
+      . "local object scope" );
 
-	# now, if we use the inherited print() method then we should see class,
-	# static and restricted attributes for a class target, and all attributes
-	# for an instance target
-		$dump	= $object->print( 'Test::Dump::One' );
-		ok( $dump =~ $result->{ static } ,
-	    "Expected result from derived friend object in "
-		. "derived class scope" );
+  # now, if we use the inherited print() method then we should see class,
+  # static and restricted attributes for a class target, and all attributes
+  # for an instance target
+    $dump = $object->print( 'Test::Dump::One' );
+    ok( $dump =~ $result->{ static } ,
+      "Expected result from derived friend object in "
+    . "derived class scope" );
 
-	# for a Test::Dump::One instance we should get all attributes
-		$dump	= $object->print( Test::Dump::One->new );
-		ok( $dump =~ $result->{ private } ,
-		    "Expected result from derived friend object in "
-			. "derived object scope" );
+  # for a Test::Dump::One instance we should get all attributes
+    $dump = $object->print( Test::Dump::One->new );
+    ok( $dump =~ $result->{ private } ,
+        "Expected result from derived friend object in "
+      . "derived object scope" );
 
 } # end of ignore warnigs
 
@@ -515,9 +437,9 @@ package main;
 # define the expected results
 #
 
-	$result		= {
-		# unrelated class
-		unrelated =>
+  $result   = {
+    # unrelated class
+    unrelated =>
 qr#^Test::Dump::Five
     class:
         object = Test::Dump::One=SCALAR\(0x[a-f\d]+\)
@@ -529,8 +451,8 @@ qr#^Test::Dump::Five
                          my_public   = { 'key' => 'value' }
 $# ,
 
-		# unrelated instance
-		foreign   =>
+    # unrelated instance
+    foreign   =>
 qr#^Test::Dump::Five=SCALAR\(0x[a-f\d]+\)
     class:
         object = Test::Dump::One=SCALAR\(0x[a-f\d]+\)
@@ -542,8 +464,8 @@ qr#^Test::Dump::Five=SCALAR\(0x[a-f\d]+\)
                          my_public   = { 'key' => 'value' }
 $# ,
 
-		# friend class/object
-		friend    =>
+    # friend class/object
+    friend    =>
 qr#^(Test::Dump::Five(?:=SCALAR\(0x[a-f\d]+\))?)
     class:
         object = (Test::Dump::One=SCALAR\(0x[a-f\d]+\))
@@ -563,145 +485,145 @@ qr#^(Test::Dump::Five(?:=SCALAR\(0x[a-f\d]+\))?)
                          my_protected  = \1->object->my_public
 $#
 
-	};
+  };
 
 
 { # again, ignore warnings
 
-	local	$^W	= 0;
+  local $^W = 0;
 
-	# a dump of the class from an unrelated class should show class & public
-	# attributes only
-		$dump	= $class->show( 'Test::Dump::Five' );
-		ok( $dump =~ $result->{ unrelated } ,
-	    	"Expected recursive result from "
-			. "unrelated class" );
+  # a dump of the class from an unrelated class should show class & public
+  # attributes only
+    $dump = $class->show( 'Test::Dump::Five' );
+    ok( $dump =~ $result->{ unrelated } ,
+        "Expected recursive result from "
+      . "unrelated class" );
 
-	# an instance dump should display the same results
-		$dump	= $class->show( Test::Dump::Five->new );
-		ok( $dump =~ $result->{ foreign  } ,
-	    	"Expected recursive result from "
-			. "unrelated class with object target" );
+  # an instance dump should display the same results
+    $dump = $class->show( Test::Dump::Five->new );
+    ok( $dump =~ $result->{ foreign  } ,
+        "Expected recursive result from "
+      . "unrelated class with object target" );
 
-	# a dump of the class from an unrelated object should show class & public
-	# attributes only
-		$dump	= $object->show( 'Test::Dump::Five' );
-		ok( $dump =~ $result->{ unrelated } ,
-	    	"Expected recursive result from "
-			. "unrelated object with class target" );
+  # a dump of the class from an unrelated object should show class & public
+  # attributes only
+    $dump = $object->show( 'Test::Dump::Five' );
+    ok( $dump =~ $result->{ unrelated } ,
+        "Expected recursive result from "
+      . "unrelated object with class target" );
 
-	# an instance dump should display the same results
-		$dump	= $object->show( Test::Dump::Five->new );
-		ok( $dump =~ $result->{ foreign  } ,
-	    	"Expected recursive result from "
-			. "unrelated object with object target" );
+  # an instance dump should display the same results
+    $dump = $object->show( Test::Dump::Five->new );
+    ok( $dump =~ $result->{ foreign  } ,
+        "Expected recursive result from "
+      . "unrelated object with object target" );
 
-	# by using print() we are accessing dump() as a friend of
-	# Test::Dump::One, so we should see all attributes
-		$dump	= $class->print( 'Test::Dump::Five' );
-		ok( $dump =~ $result->{ friend   } ,
-	    	"Expected recursive result from "
-			. "friend class with class target" );
+  # by using print() we are accessing dump() as a friend of
+  # Test::Dump::One, so we should see all attributes
+    $dump = $class->print( 'Test::Dump::Five' );
+    ok( $dump =~ $result->{ friend   } ,
+        "Expected recursive result from "
+      . "friend class with class target" );
 
-		$dump	= $class->print( Test::Dump::Five->new );
-		ok( $dump =~ $result->{ friend    } ,
-	    	"Expected recursive result from "
-			. "friend class with object target" );
+    $dump = $class->print( Test::Dump::Five->new );
+    ok( $dump =~ $result->{ friend    } ,
+        "Expected recursive result from "
+      . "friend class with object target" );
 
-		$dump	= $object->print( 'Test::Dump::Five' );
-		ok( $dump =~ $result->{ friend    } ,
-	    	"Expected recursive result from "
-			. "friend object with class target" );
+    $dump = $object->print( 'Test::Dump::Five' );
+    ok( $dump =~ $result->{ friend    } ,
+        "Expected recursive result from "
+      . "friend object with class target" );
 
-		$dump	= $object->print( Test::Dump::Five->new );
-		ok( $dump =~ $result->{ friend    } ,
-	    	"Expected recursive result from "
-			. "friend object with object target" );
+    $dump = $object->print( Test::Dump::Five->new );
+    ok( $dump =~ $result->{ friend    } ,
+        "Expected recursive result from "
+      . "friend object with object target" );
 
-	#
-	# OK, now we want to test the reporting of friends
-	#
+  #
+  # OK, now we want to test the reporting of friends
+  #
 
-	#
-	# define the expected results
-	#
-		$result		=
-		# class/object friend
+  #
+  # define the expected results
+  #
+    $result   =
+    # class/object friend
 qr#^Test::Dump::One(?:=SCALAR\(0x[a-f\d]+\))?
     friends:
         Test::Dump::Three
         main::dump
 $#;
 
-	# for the Test::Dump::One class we should see a list of the friend methods
-	# and classes
-		$class	= 'Test::Dump::One';
-		$dump	= $class->dump( friends => 1 );
-		ok( $dump =~ $result ,
-	    	"Expected friends output for class dump" );
+  # for the Test::Dump::One class we should see a list of the friend methods
+  # and classes
+    $class  = 'Test::Dump::One';
+    $dump = $class->dump( friends => 1 );
+    ok( $dump =~ $result ,
+        "Expected friends output for class dump" );
 
-		$object	= $class->new;
-		$dump	= $object->dump( friends => 1 );
-		ok( $dump =~ $result ,
-	    	"Expected friends output for object dump" );
+    $object = $class->new;
+    $dump = $object->dump( friends => 1 );
+    ok( $dump =~ $result ,
+        "Expected friends output for object dump" );
 
-	# OK, now if the class has no friends, then we should get nothing listed
-	# under the friends: heading
-		$result		=
+  # OK, now if the class has no friends, then we should get nothing listed
+  # under the friends: heading
+    $result   =
 qr#^Test::Dump::Two(?:=SCALAR\(0x[a-f\d]+\))?
     friends:
 $#;
 
-	# Test::Dump::Two has no friends so we should get none listed
-		$class	= 'Test::Dump::Two';
-		$dump	= $class->dump( friends => 1 );
-		ok( $dump =~ $result ,
-	    	"Expected friends output for friendless class dump" );
+  # Test::Dump::Two has no friends so we should get none listed
+    $class  = 'Test::Dump::Two';
+    $dump = $class->dump( friends => 1 );
+    ok( $dump =~ $result ,
+        "Expected friends output for friendless class dump" );
 
-		$object	= $class->new;
-		$dump	= $object->dump( friends => 1 );
-		ok( $dump =~ $result ,
-	    	"Expected friends output for friendless object dump" );
+    $object = $class->new;
+    $dump = $object->dump( friends => 1 );
+    ok( $dump =~ $result ,
+        "Expected friends output for friendless object dump" );
 
-	# ensure dump() returns undef if we've asked for nothing
-		ok( ! defined  $class->dump( all => undef ) ,
-	    	"Expected undef from class dump" );
-		ok( ! defined $object->dump( all => undef ) ,
-	    	"Expected undef from object dump" );
+  # ensure dump() returns undef if we've asked for nothing
+    ok( ! defined  $class->dump( all => undef ) ,
+        "Expected undef from class dump" );
+    ok( ! defined $object->dump( all => undef ) ,
+        "Expected undef from object dump" );
 
 
   #
   # Now test accessing only abstract attributes and methods
   #
 
-		$result =
+    $result =
 qr#^Test::Dump::Two(?:=SCALAR\(0x[a-f\d]+\))?
     abstract:
         my_abstract
 $#;
     $dump   = $object->dump( abstract => 1 );
-		ok( $dump =~ $result ,
-	    	"Expected abstract output for object dump" );
+    ok( $dump =~ $result ,
+        "Expected abstract output for object dump" );
 
-	#
-	# OK, time to check that dump() behaves as expected (i.e. dies with a
-	# message) when you explicitly ask for an attribute type that you do not
-	# have access to.
-	#
+  #
+  # OK, time to check that dump() behaves as expected (i.e. dies with a
+  # message) when you explicitly ask for an attribute type that you do not
+  # have access to.
+  #
 
-	# public attributes can be accessed anywhere, but only if you have an
-	# instance
-		$class	= 'Test::Dump::One';
-		dies_ok { $class->dump( public => 1 ) }
-	        	"dump() dies accessing prohibited attribute";
-		dies_ok { $class->dump( static => 1 ) }
-	        	"dump() dies accessing prohibited attribute";
+  # public attributes can be accessed anywhere, but only if you have an
+  # instance
+    $class  = 'Test::Dump::One';
+    dies_ok { $class->dump( public => 1 ) }
+            "dump() dies accessing prohibited attribute";
+    dies_ok { $class->dump( static => 1 ) }
+            "dump() dies accessing prohibited attribute";
 
-		$object	= $class->new;
-		dies_ok { $object->dump( private => 1 ) }
-	        	"dump() dies accessing prohibited attribute";
-		dies_ok { $object->dump( static  => 1 ) }
-	        	"dump() dies accessing prohibited attribute";
+    $object = $class->new;
+    dies_ok { $object->dump( private => 1 ) }
+            "dump() dies accessing prohibited attribute";
+    dies_ok { $object->dump( static  => 1 ) }
+            "dump() dies accessing prohibited attribute";
 
 } # end of ignore warnings
 
@@ -723,8 +645,8 @@ __PACKAGE__->declare( public  => { my_public  => $object } ,
 # package
 sub print
 {
-	my	$self	= __PACKAGE__->class( shift );
-		  $self->dump( @_ );
+  my  $self = __PACKAGE__->class( shift );
+      $self->dump( @_ );
 } # print()
 
 1;
@@ -735,14 +657,14 @@ package main;
 
 { # again, ignore warnings
 
-	local	$^W	= 0;
+  local $^W = 0;
 
-		$class	= 'Test::Dump::Six';
-		$object	= $class->new;
-	# if we ask for public only, then we should get public only
-		$dump	= $object->dump( public => 1 );
-	# define the expected result
-		$result	=
+    $class  = 'Test::Dump::Six';
+    $object = $class->new;
+  # if we ask for public only, then we should get public only
+    $dump = $object->dump( public => 1 );
+  # define the expected result
+    $result =
 qr#Test::Dump::Six=SCALAR\(0x[a-f\d]+\)
     public:
         my_public = Test::Dump::One=SCALAR\(0x[a-f\d]+\)
@@ -753,13 +675,13 @@ qr#Test::Dump::Six=SCALAR\(0x[a-f\d]+\)
                         public:
                             my_public   = { 'key' => 'value' }
 #;
-		ok( $dump =~ $result , "dump() returns limited results as requested" );
+    ok( $dump =~ $result , "dump() returns limited results as requested" );
 
-	# now, let's select a number of attributes to show
-		$dump	= $object->print( static => 1 , private => 1 , class => 1 );
-	# NB: class attributes aren't cloned, while instance attributes are to
-	#     ensure each instance has it's own copy
-		$result	=
+  # now, let's select a number of attributes to show
+    $dump = $object->print( static => 1 , private => 1 , class => 1 );
+  # NB: class attributes aren't cloned, while instance attributes are to
+  #     ensure each instance has it's own copy
+    $result =
 qr#(Test::Dump::Six=SCALAR\(0x[a-f\d]+\))
     class:
         my_class   = Test::Dump::One=SCALAR\(0x[a-f\d]+\)
@@ -780,14 +702,14 @@ qr#(Test::Dump::Six=SCALAR\(0x[a-f\d]+\))
                          public:
                              my_public   = { 'key' => 'value' }
 #;
-		ok( $dump =~ $result , "dump() returns limited results as requested" );
+    ok( $dump =~ $result , "dump() returns limited results as requested" );
 
   # repeat the above test, but this time with back-trace disabled
-		$dump	= $object->print( static    => 1     ,
+    $dump = $object->print( static    => 1     ,
                             private   => 1     ,
                             class     => 1     ,
                             backtrace => undef );
-		$result	=
+    $result =
 qr#Test::Dump::Six=SCALAR\(0x[a-f\d]+\)
     class:
         my_class   = (Test::Dump::One=SCALAR\(0x[a-f\d]+\)
@@ -808,12 +730,12 @@ qr#Test::Dump::Six=SCALAR\(0x[a-f\d]+\)
                          public:
                              my_public   = { 'key' => 'value' }
 #;
-		ok( $dump =~ $result , "dump() ignored back-traces as requested" );
+    ok( $dump =~ $result , "dump() ignored back-traces as requested" );
 
 
-	# OK, now test the indentation to make sure it can be set at run time
-		$dump	= $object->dump( indent => 1 );
-		$result	=
+  # OK, now test the indentation to make sure it can be set at run time
+    $dump = $object->dump( indent => 1 );
+    $result =
 qr#Test::Dump::Six=SCALAR\(0x[a-f\d]+\)
  class:
   my_class  = Test::Dump::One=SCALAR\(0x[a-f\d]+\)
@@ -832,7 +754,7 @@ qr#Test::Dump::Six=SCALAR\(0x[a-f\d]+\)
                public:
                 my_public   = { 'key' => 'value' }
 #;
-		ok( $dump =~ $result , "dump() honours indentation" );
+    ok( $dump =~ $result , "dump() honours indentation" );
 
 } # end of ignore warnings
 
@@ -850,7 +772,7 @@ __PACKAGE__->declare( class      => { my_class      => 1 } ,
                       public     => { my_public     => 4 } ,
                       private    => { my_private    => 5 } ,
                       protected  => { my_protected  => 6 } ,
-					            strict     => 0                      );
+                      strict     => 0                      );
 
 1;
 
@@ -859,29 +781,29 @@ package main;
 
 { # again, ignore warnings
 
-	local	$^W	= 0;
+  local $^W = 0;
 
-		$class	= 'Test::Dump::Seven';
-	# first, try a class dump
-		$dump	= $class->dump;
-		$result	= <<__EOR__;
+    $class  = 'Test::Dump::Seven';
+  # first, try a class dump
+    $dump = $class->dump;
+    $result = <<__EOR__;
 Test::Dump::Seven
     class:
         my_class = 1
 __EOR__
-		ok( $dump eq $result , "dump() ignores strict in class dump" );
+    ok( $dump eq $result , "dump() ignores strict in class dump" );
 
-	# now, try an object dump
-		$object	= $class->new;
-		$dump	= $object->dump;
-		$result	=
+  # now, try an object dump
+    $object = $class->new;
+    $dump = $object->dump;
+    $result =
 qr#Test::Dump::Seven=SCALAR\(0x[a-f\d]+\)
     class:
         my_class  = 1
     public:
         my_public = 4
 #;
-		ok( $dump =~ $result , "dump() ignores strict in object dump" );
+    ok( $dump =~ $result , "dump() ignores strict in object dump" );
 
 } # end of ignore warnings
 
@@ -911,11 +833,11 @@ __PACKAGE__->declare( public => { my_public => Test::Dump::Eight->new } );
 # return to main to resume testing
 package main;
 
-	$class	= 'Test::Dump::Nine';
-	$object	= $class->new;
+  $class  = 'Test::Dump::Nine';
+  $object = $class->new;
 
 # define the expected results
-	$result	= [
+  $result = [
 
 # no depth restrictions
 qr#Test::Dump::Nine=SCALAR\(0x[a-f\d]+\)
@@ -995,23 +917,23 @@ qr#Test::Dump::Nine=SCALAR\(0x[a-f\d]+\)
                                             my_public   = HASH\(0x[a-f\d]+\)
 #
 
-		]; # $result
+    ]; # $result
 
-	# make sure dump() behaves as expected
-	my	@depth	= ( undef , 0 .. 4 );
-	for ( my $indx = 0 ; $indx < scalar @depth ; $indx++ ) {
-		# again, ignore warnings
-		local	$^W	= 0;
+  # make sure dump() behaves as expected
+  my  @depth  = ( undef , 0 .. 4 );
+  for ( my $indx = 0 ; $indx < scalar @depth ; $indx++ ) {
+    # again, ignore warnings
+    local $^W = 0;
 
-		my	$depth	= $depth[ $indx ];
-		# generate the dump at this depth
-			  $dump	  = $object->dump( indent => 1 , depth => $depth );
+    my  $depth  = $depth[ $indx ];
+    # generate the dump at this depth
+        $dump   = $object->dump( indent => 1 , depth => $depth );
 
-		# at depth 4 we should get the same result as shown for the case
-		# with no depth limit (only 4 levels of nesting)
-		ok( $dump =~ $result->[ $indx % 5 ] ,
-		    "dump() correct at depth" . ( defined $depth ? " $depth" : '' ) );
-	}
+    # at depth 4 we should get the same result as shown for the case
+    # with no depth limit (only 4 levels of nesting)
+    ok( $dump =~ $result->[ $indx % 5 ] ,
+        "dump() correct at depth" . ( defined $depth ? " $depth" : '' ) );
+  }
 
 # added tests to make sure dump() fails if requests are made for 'shared'
 # attributes (now that shared has been renamed 'restricted')
@@ -1028,27 +950,27 @@ throws_ok { $object->dump( shared => 1 ) } "/Unknown parameter 'shared'/" ,
 # - use parent() to call dump() from within the class as this will output
 #   the maximum number of attributes for that class 
   $dump   = $class->parent;
-	ok( $dump =~ $result , "Empty class shows just the class name" );
+  ok( $dump =~ $result , "Empty class shows just the class name" );
 
 # does the same happen for an instance of this class? it should
   $result = qr#$class=SCALAR\(0x[a-f\d]+\)
 #;
   $object = $class->new;
   $dump   = $object->parent;
-	ok( $dump =~ $result , "Empty class instance shows just the class name" );
+  ok( $dump =~ $result , "Empty class instance shows just the class name" );
 
 # now, test to see if the parent has the same level of access as the
 # class itself
   $class  = 'Test::Dump::One';
   $result = $class->call;
   $dump   = $class->parent;
-	ok( $dump eq $result , "Parent access the same as child access" );
+  ok( $dump eq $result , "Parent access the same as child access" );
 
 # what about the instance of the class?
   $object = $class->new;
   $result = $object->call;
   $dump   = $object->parent;
-	ok( $dump eq $result ,
+  ok( $dump eq $result ,
       "Parent instance access the same as child instance access" );
 
 

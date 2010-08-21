@@ -1,20 +1,20 @@
 #!/usr/bin/perl -w
-# $Id: 25modifiers.t,v 1.1 2006-01-31 21:38:04 ian Exp $
+# $Id: 25modifiers.t 1511 2010-08-21 23:24:49Z ian $
 
 # modifiers.t
 #
 # Ensure the attribute modifiers behave as expected.
 
 use strict;
-use Test::More		tests	=> 10;
+use Test::More    tests => 10;
 use Test::Exception;
-use Class::Declare	qw( :modifiers );
+use Class::Declare  qw( :modifiers );
 
 # define a random value for read-write/read-only tests
-use constant		RANDOM	=> rand;
+use constant    RANDOM  => rand;
 
 # ensure the modifiers return Class::Declare::Read objects
-my	$object;
+my  $object;
 
 # make sure ro() behaves as expected
 lives_ok { $object = ro RANDOM } "ro() executes";

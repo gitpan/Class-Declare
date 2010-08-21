@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 02declare.t,v 1.8 2003-06-15 19:09:00 ian Exp $
+# $Id: 02declare.t 1511 2010-08-21 23:24:49Z ian $
 
 # declare.t
 #
@@ -17,58 +17,58 @@ use Test::Exception;
 
 # create a package with derived from Class::Declare
 lives_ok {
-	package Test::Declare::One;
+  package Test::Declare::One;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare();
+  __PACKAGE__->declare();
 
-	1;
+  1;
 } 'empty declare() succeeds';
 
 # call declare twice for the same package
 dies_ok {
-	package Test::Declare::Two;
+  package Test::Declare::Two;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare();
-	__PACKAGE__->declare();
+  __PACKAGE__->declare();
+  __PACKAGE__->declare();
 
-	1;
+  1;
 } 'duplicate calls to declare() fail';
 
 # only accepts valid arguments
 lives_ok {
-	package Test::Declare::Three;
+  package Test::Declare::Three;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( public     => undef ,
-	                      private    => undef ,
-	                      protected  => undef ,
-	                      class      => undef ,
-	                      static     => undef ,
-	                      restricted => undef ,
-	                      init       => undef ,
-	                      strict     => undef ,
-	                      friends    => undef );
-	1;
+  __PACKAGE__->declare( public     => undef ,
+                        private    => undef ,
+                        protected  => undef ,
+                        class      => undef ,
+                        static     => undef ,
+                        restricted => undef ,
+                        init       => undef ,
+                        strict     => undef ,
+                        friends    => undef );
+  1;
 } 'valid arguments to declare() OK';
 
 # invalid arguments cause failure
 dies_ok {
-	package Test::Declare::Four;
+  package Test::Declare::Four;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( foo => undef );
+  __PACKAGE__->declare( foo => undef );
 
-	1;
+  1;
 } 'invalid declare() arguments fails';
 
 # cannot declare attributes of name 'public', 'private', etc
@@ -78,72 +78,72 @@ dies_ok {
 #     will execute either the "class" code or the
 #     "public/private/etc" code
 dies_ok {
-	package Test::Declare::Five;
+  package Test::Declare::Five;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( public => { protected => undef } );
+  __PACKAGE__->declare( public => { protected => undef } );
 
-	1
+  1
 } 'invalid public/private/protected attribute name';
 
 dies_ok {
-	package Test::Declare::Six;
+  package Test::Declare::Six;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( class  => { private   => undef } );
+  __PACKAGE__->declare( class  => { private   => undef } );
 
-	1
+  1
 } 'invalid class attribute name';
 
 # cannot redeclare attributes
 dies_ok {
-	package Test::Declare::Seven;
+  package Test::Declare::Seven;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( public  => { attribute => undef } ,
-	                      private => { attribute => undef } );
+  __PACKAGE__->declare( public  => { attribute => undef } ,
+                        private => { attribute => undef } );
 
-	1
+  1
 } 'attribute redefinition' ;
 
 # can declare attributes to have a code reference as their value
 lives_ok {
-	package Test::Declare::Eight;
+  package Test::Declare::Eight;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( static => { attribute => sub { rand } } );
+  __PACKAGE__->declare( static => { attribute => sub { rand } } );
 
-	1
+  1
 } 'CODEREF attribute value OK' ;
 
 # can we declare a single attribute without a hash reference?
 lives_ok {
-	package Test::Declare::Nine;
+  package Test::Declare::Nine;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( public => 'attribute' );
+  __PACKAGE__->declare( public => 'attribute' );
 
-	1
+  1
 } 'single attribute definition OK';
 
 # can we declare a list of attributes, all defaulting to undef?
 lives_ok {
-	package Test::Declare::Ten;
+  package Test::Declare::Ten;
 
-	use strict;
-	use base qw( Class::Declare );
+  use strict;
+  use base qw( Class::Declare );
 
-	__PACKAGE__->declare( class => [ qw( a b c d e f ) ] );
+  __PACKAGE__->declare( class => [ qw( a b c d e f ) ] );
 
-	1
+  1
 } 'list of attributes defaulting to undef OK';

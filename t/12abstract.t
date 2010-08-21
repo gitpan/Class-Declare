@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 1.1 $
+# $Revision: 1511 $
 
 # abstract.t
 #
@@ -33,8 +33,8 @@ foreach my $target ( @targets ) {
 
 
 # create the test object
-my	$test	= Class::Declare::Test->new( type  =>  $type  ,
-  	     	                             tests => \@tests )
-					or die 'could not create test object';
+my  $test = Class::Declare::Test->new( type  =>  $type  ,
+                                       tests => \@tests )
+          or die 'could not create test object';
 # run the tests
-	$test->run;
+  $test->run;

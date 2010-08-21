@@ -10,7 +10,7 @@ use File::Spec::Functions;
 
 use base qw( Class::Declare     );
 use vars qw( $REVISION $VERSION );
-             $REVISION	= '$Revision: 1.21 $';
+             $REVISION  = '$Revision: 1.21 $';
              $VERSION   = '0.02';
 
 =head1 NAME
@@ -45,101 +45,101 @@ Class::Declare::Test - simplify the generation of method/attribute tests.
 # define the testing constants
 #
 
-use constant	_CLASS				      => ( 1 << 0 );
-use constant	_DERIVED			      => ( 1 << 1 );
-use constant	_UNRELATED		    	=> ( 1 << 2 );
-use constant	_PARENT   		    	=> ( 1 << 3 );
+use constant  _CLASS              => ( 1 << 0 );
+use constant  _DERIVED            => ( 1 << 1 );
+use constant  _UNRELATED          => ( 1 << 2 );
+use constant  _PARENT             => ( 1 << 3 );
 
 # are we dealing with a class or instance?
-use constant	_INSTANCE			      => ( 1 << 4 );
-use constant	_IS_INSTANCE	    	=> sub {   $_[ 0 ] >> 4 };
+use constant  _INSTANCE           => ( 1 << 4 );
+use constant  _IS_INSTANCE        => sub {   $_[ 0 ] >> 4 };
 
 # define the context and target macros
-use constant	_CONTEXT			      => sub {   $_[ 0 ] << 0 };
-use constant	_TARGET			      	=> sub {   $_[ 0 ] << 5 };
+use constant  _CONTEXT            => sub {   $_[ 0 ] << 0 };
+use constant  _TARGET             => sub {   $_[ 0 ] << 5 };
 
 # extract the context, context and target from a given bitmap
-use constant	_MASK				        => ( ( 1 << 5 ) - 1 );
-use constant	_GET_CONTEXT		    => sub { ( $_[ 0 ] >> 0 ) & _MASK };
-use constant	_GET_TARGET			    => sub { ( $_[ 0 ] >> 5 ) & _MASK };
+use constant  _MASK               => ( ( 1 << 5 ) - 1 );
+use constant  _GET_CONTEXT        => sub { ( $_[ 0 ] >> 0 ) & _MASK };
+use constant  _GET_TARGET         => sub { ( $_[ 0 ] >> 5 ) & _MASK };
 
 # define the test constants
-use constant	_TEST_ACCESS		    => ( 1 << 0 );
-use constant	_TEST_READ			    => ( 1 << 1 );
-use constant	_TEST_WRITE_LVALUE	=> ( 1 << 2 );
-use constant	_TEST_WRITE_ARG		  => ( 1 << 3 );
-use constant	_TEST_WRITE			    => (   _TEST_WRITE_LVALUE
-            	            		         | _TEST_WRITE_ARG    );
-use constant	_TEST_ALL			      => (   _TEST_ACCESS
-            	         			           | _TEST_READ
-            	         			           | _TEST_WRITE        );
+use constant  _TEST_ACCESS        => ( 1 << 0 );
+use constant  _TEST_READ          => ( 1 << 1 );
+use constant  _TEST_WRITE_LVALUE  => ( 1 << 2 );
+use constant  _TEST_WRITE_ARG     => ( 1 << 3 );
+use constant  _TEST_WRITE         => (   _TEST_WRITE_LVALUE
+                                       | _TEST_WRITE_ARG    );
+use constant  _TEST_ALL           => (   _TEST_ACCESS
+                                       | _TEST_READ
+                                       | _TEST_WRITE        );
 
-use constant	_TEST				        => sub {   $_[ 0 ] << 10 };
-use constant	_GET_TEST		       	=> sub { ( $_[ 0 ] >> 10 ) & _MASK };
+use constant  _TEST               => sub {   $_[ 0 ] << 10 };
+use constant  _GET_TEST           => sub { ( $_[ 0 ] >> 10 ) & _MASK };
 
 # are we dealing in the method call or the attribute
-use constant	_ATTRIBUTE	    		=> ( 1 << 0 );
-use constant	_METHOD			      	=> 0;
+use constant  _ATTRIBUTE          => ( 1 << 0 );
+use constant  _METHOD             => 0;
 
 # define the constants for the focus of the test
-use constant	_FOCUS			      	=> sub {   $_[ 0 ] << 14 };
-use constant	_GET_FOCUS	    		=> sub { ( $_[ 0 ] >> 14 ) & 1 };
+use constant  _FOCUS              => sub {   $_[ 0 ] << 14 };
+use constant  _GET_FOCUS          => sub { ( $_[ 0 ] >> 14 ) & 1 };
 
 # define the expected result of the test
-use constant	_DIE 				        =>   0;
-use constant	_LIVE				        => ( 1 << 0 );
-use constant	_RESULT			      	=> sub {   $_[ 0 ] << 15 };
-use constant	_GET_RESULT	    		=> sub { ( $_[ 0 ] >> 15 ) & 1 };
+use constant  _DIE                =>   0;
+use constant  _LIVE               => ( 1 << 0 );
+use constant  _RESULT             => sub {   $_[ 0 ] << 15 };
+use constant  _GET_RESULT         => sub { ( $_[ 0 ] >> 15 ) & 1 };
 
 # define the context macros to be exported
-use constant	CTX_CLASS		   	    => _CONTEXT->(             _CLASS     );
-use constant	CTX_DERIVED			    => _CONTEXT->(             _DERIVED   );
-use constant	CTX_UNRELATED		    => _CONTEXT->(             _UNRELATED );
-use constant	CTX_PARENT   		    => _CONTEXT->(             _PARENT    );
-use constant	CTX_INSTANCE		    => _CONTEXT->( _INSTANCE | _CLASS     );
-use constant	CTX_INHERITED		    => _CONTEXT->( _INSTANCE | _DERIVED   );
-use constant	CTX_FOREIGN			    => _CONTEXT->( _INSTANCE | _UNRELATED );
-use constant	CTX_SUPER  			    => _CONTEXT->( _INSTANCE | _PARENT    );
+use constant  CTX_CLASS           => _CONTEXT->(             _CLASS     );
+use constant  CTX_DERIVED         => _CONTEXT->(             _DERIVED   );
+use constant  CTX_UNRELATED       => _CONTEXT->(             _UNRELATED );
+use constant  CTX_PARENT          => _CONTEXT->(             _PARENT    );
+use constant  CTX_INSTANCE        => _CONTEXT->( _INSTANCE | _CLASS     );
+use constant  CTX_INHERITED       => _CONTEXT->( _INSTANCE | _DERIVED   );
+use constant  CTX_FOREIGN         => _CONTEXT->( _INSTANCE | _UNRELATED );
+use constant  CTX_SUPER           => _CONTEXT->( _INSTANCE | _PARENT    );
 
 # define the target macros to be exported
-use constant	TGT_CLASS		  	    =>  _TARGET->(             _CLASS     );
-use constant	TGT_DERIVED			    =>  _TARGET->(             _DERIVED   );
-use constant	TGT_UNRELATED		    =>  _TARGET->(             _UNRELATED );
-use constant	TGT_PARENT   		    =>  _TARGET->(             _PARENT    );
-use constant	TGT_INSTANCE		    =>  _TARGET->( _INSTANCE | _CLASS     );
-use constant	TGT_INHERITED		    =>  _TARGET->( _INSTANCE | _DERIVED   );
-use constant	TGT_FOREIGN			    =>  _TARGET->( _INSTANCE | _UNRELATED );
-use constant	TGT_SUPER  			    =>  _TARGET->( _INSTANCE | _PARENT    );
+use constant  TGT_CLASS           =>  _TARGET->(             _CLASS     );
+use constant  TGT_DERIVED         =>  _TARGET->(             _DERIVED   );
+use constant  TGT_UNRELATED       =>  _TARGET->(             _UNRELATED );
+use constant  TGT_PARENT          =>  _TARGET->(             _PARENT    );
+use constant  TGT_INSTANCE        =>  _TARGET->( _INSTANCE | _CLASS     );
+use constant  TGT_INHERITED       =>  _TARGET->( _INSTANCE | _DERIVED   );
+use constant  TGT_FOREIGN         =>  _TARGET->( _INSTANCE | _UNRELATED );
+use constant  TGT_SUPER           =>  _TARGET->( _INSTANCE | _PARENT    );
 
 # define the test macros to be exported
-use constant	TST_ACCESS	  		  =>    _TEST->( _TEST_ACCESS           );
-use constant	TST_READ		    	  =>    _TEST->( _TEST_READ             );
-use constant	TST_WRITE_LVALUE	  =>    _TEST->( _TEST_WRITE_LVALUE     );
-use constant	TST_WRITE_ARG 		  =>    _TEST->( _TEST_WRITE_ARG        );
-use constant	TST_WRITE		    	  =>    _TEST->( _TEST_WRITE            );
-use constant	TST_ALL			    	  =>    _TEST->( _TEST_ALL              );
+use constant  TST_ACCESS          =>    _TEST->( _TEST_ACCESS           );
+use constant  TST_READ            =>    _TEST->( _TEST_READ             );
+use constant  TST_WRITE_LVALUE    =>    _TEST->( _TEST_WRITE_LVALUE     );
+use constant  TST_WRITE_ARG       =>    _TEST->( _TEST_WRITE_ARG        );
+use constant  TST_WRITE           =>    _TEST->( _TEST_WRITE            );
+use constant  TST_ALL             =>    _TEST->( _TEST_ALL              );
 
 # define the result macros to be exported
-use constant	LIVE				        =>  _RESULT->( _LIVE                  );
-use constant	DIE					        =>  _RESULT->( _DIE                   );
+use constant  LIVE                =>  _RESULT->( _LIVE                  );
+use constant  DIE                 =>  _RESULT->( _DIE                   );
 
 # define the focus macros for export
-use constant	ATTRIBUTE			      =>   _FOCUS->( _ATTRIBUTE             );
-use constant	METHOD				      =>   _FOCUS->( _METHOD                );
+use constant  ATTRIBUTE           =>   _FOCUS->( _ATTRIBUTE             );
+use constant  METHOD              =>   _FOCUS->( _METHOD                );
 
 
 # define the export targets
 use vars qw/ @EXPORT_OK %EXPORT_TAGS /;
 
 # define attribute and method default values
-use constant	DEFAULT_ATTRIBUTE	  => rand time;
-use constant	DEFAULT_METHOD		  => rand time;
+use constant  DEFAULT_ATTRIBUTE   => rand time;
+use constant  DEFAULT_METHOD      => rand time;
 
 
 # define the accessors we'll use in the test classes
 #    - these accessors ensure we have the correct context for all of
 #      the test cases
-use constant	ACCESSORS			      => <<__EODfN__;
+use constant  ACCESSORS           => <<__EODfN__;
 
 #
 # We need to test to see whether we can access attributes and methods from
@@ -151,20 +151,20 @@ use constant	ACCESSORS			      => <<__EODfN__;
 # create local attribute accessor
 sub get
 {
-	# will be honoured as either a class or instance method
-	my	\$self		= __PACKAGE__->class( shift );
-	my	\$target	= shift || \$self;
-  		\$target->attribute
+  # will be honoured as either a class or instance method
+  my  \$self    = __PACKAGE__->class( shift );
+  my  \$target  = shift || \$self;
+      \$target->attribute
 } # get()
 
 
 # create local method accessor
 sub call
 {
-	# will be honoured as either a class or instance method
-	my	\$self		= __PACKAGE__->class( shift );
-	my	\$target	= shift || \$self;
-  		\$target->method;
+  # will be honoured as either a class or instance method
+  my  \$self    = __PACKAGE__->class( shift );
+  my  \$target  = shift || \$self;
+      \$target->method;
 } # call()
 
 
@@ -176,22 +176,22 @@ sub call
 # lvalue assignment test
 sub cmp_lvalue
 {
-	my	\$self		= __PACKAGE__->class( shift );
-	my	\$target	= shift || \$self;
-	my	\$rand		= rand time;
-  		\$target->lvalue( \$rand );
-  	( \$target->attribute == \$rand );
+  my  \$self    = __PACKAGE__->class( shift );
+  my  \$target  = shift || \$self;
+  my  \$rand    = rand time;
+      \$target->lvalue( \$rand );
+    ( \$target->attribute == \$rand );
 } # cmp_lvalue()
 
 
 # argument assignment test
 sub cmp_argument
 {
-	my	\$self		= __PACKAGE__->class( shift );
-	my	\$target	= shift || \$self;
-	my	\$rand		= rand time;
-  		\$target->argument( \$rand );
-  	( \$target->attribute == \$rand );
+  my  \$self    = __PACKAGE__->class( shift );
+  my  \$target  = shift || \$self;
+  my  \$rand    = rand time;
+      \$target->argument( \$rand );
+    ( \$target->attribute == \$rand );
 } # cmp_argument()
 
 __EODfN__
@@ -348,31 +348,31 @@ I<result>. See the C<class.t>, C<public.t>, etc test scripts for examples.
 =cut
 
 {
-	no strict 'refs';
+  no strict 'refs';
 
-	# get the list of symbols to export
-	my	@symbols	= keys %{ __PACKAGE__ . '::' };
-	my	@context	= grep { /^CTX_/o } @symbols;
-	my	@target		= grep { /^TGT_/o } @symbols;
-	my	@test		  = grep { /^TST_/o } @symbols;
-	my	@focus		= qw( ATTRIBUTE METHOD );
-	my	@result		= qw( LIVE      DIE    );
+  # get the list of symbols to export
+  my  @symbols  = keys %{ __PACKAGE__ . '::' };
+  my  @context  = grep { /^CTX_/o } @symbols;
+  my  @target   = grep { /^TGT_/o } @symbols;
+  my  @test     = grep { /^TST_/o } @symbols;
+  my  @focus    = qw( ATTRIBUTE METHOD );
+  my  @result   = qw( LIVE      DIE    );
 
-	# export the various symbols
-	@EXPORT_OK		= ( @context , @target , @test ,
-	          		    @result  , @focus  );
-	%EXPORT_TAGS	= ( contexts  => \@context   ,
-	            	    targets   => \@target    ,
-	            	    tests     => \@test      ,
-	            	    results   => \@result    ,
-	            	    focus     => \@focus      ,
-	            	    constants => \@EXPORT_OK );
+  # export the various symbols
+  @EXPORT_OK    = ( @context , @target , @test ,
+                    @result  , @focus  );
+  %EXPORT_TAGS  = ( contexts  => \@context   ,
+                    targets   => \@target    ,
+                    tests     => \@test      ,
+                    results   => \@result    ,
+                    focus     => \@focus      ,
+                    constants => \@EXPORT_OK );
 }
 
 
 # load the test modules
 #  - NB: the number of tests is determined at run-time
-use Test::More			qw( no_plan );
+use Test::More      qw( no_plan );
 use Test::Exception;
 
 =head2 Methods
@@ -414,69 +414,69 @@ access checking, while a false value will turn access checking off.
 # define the Permute class
 __PACKAGE__->declare(
 
-	# public attributes
-	public  => { type      => undef ,	  # type of test (public, private, etc)
-	             tests     => undef ,	  # the tests hash
-	             check     => undef } ,	# turn on strict checking
+  # public attributes
+  public  => { type      => undef ,   # type of test (public, private, etc)
+               tests     => undef ,   # the tests hash
+               check     => undef } , # turn on strict checking
 
-	# private attributes for the Permute class
-	private => { base      => undef ,	  # the base class
-	             derived   => undef ,	  # the derived class
-	             unrelated => undef ,	  # the unrelated class
-	             parent    => undef ,	  # the parent class
-	             instance  => undef ,	  # the base class instance
-	             inherited => undef ,	  # the derived class instance
-	             foreign   => undef ,	  # the unrelated class instance
-	             super     => undef } ,	# the parent class instance
+  # private attributes for the Permute class
+  private => { base      => undef ,   # the base class
+               derived   => undef ,   # the derived class
+               unrelated => undef ,   # the unrelated class
+               parent    => undef ,   # the parent class
+               instance  => undef ,   # the base class instance
+               inherited => undef ,   # the derived class instance
+               foreign   => undef ,   # the unrelated class instance
+               super     => undef } , # the parent class instance
 
-	# specify the initialisation routine
-	init    => sub {
-		my	$self	  = __PACKAGE__->public( shift );
-		my	$class	= ref( $self );
+  # specify the initialisation routine
+  init    => sub {
+    my  $self   = __PACKAGE__->public( shift );
+    my  $class  = ref( $self );
 
-		# ensure the test type and outcomes hash have been define
-		warn $class . ": 'type' attribute must be defined\n"
-			and return undef		unless ( $self->type  );
-		warn $class . ": 'tests' attribute must be defined\n"
-			and return undef		unless ( $self->tests );
+    # ensure the test type and outcomes hash have been define
+    warn $class . ": 'type' attribute must be defined\n"
+      and return undef    unless ( $self->type  );
+    warn $class . ": 'tests' attribute must be defined\n"
+      and return undef    unless ( $self->tests );
 
-		# make sure the type is understood
-		( grep { $self->type eq $_ } qw( class  static  restricted 
-		                                 public private protected  
+    # make sure the type is understood
+    ( grep { $self->type eq $_ } qw( class  static  restricted 
+                                     public private protected  
                                                     abstract   ) )
-			 or warn $class . ': unknown type "' . $self->type . '"'
-			and return undef;
+       or warn $class . ': unknown type "' . $self->type . '"'
+      and return undef;
 
-		# make sure we have a lists of test
-		( ref( $self->tests ) eq 'ARRAY' )
-			 or warn $class . ': array of tests expected'
-			and return undef;
+    # make sure we have a lists of test
+    ( ref( $self->tests ) eq 'ARRAY' )
+       or warn $class . ': array of tests expected'
+      and return undef;
 
-		# create the base, derived and unrelated class names
-		my	$type				        = $self->type;
-			  $self->base			    = join '::' , __PACKAGE__ , ucfirst( $type );
-			  $self->derived		  = join '::' , $self->base , 'Derived';
-			  $self->unrelated	  = join '::' , $self->base , 'Unrelated';
-			  $self->parent       = join '::' , $self->base , 'Parent';
+    # create the base, derived and unrelated class names
+    my  $type               = $self->type;
+        $self->base         = join '::' , __PACKAGE__ , ucfirst( $type );
+        $self->derived      = join '::' , $self->base , 'Derived';
+        $self->unrelated    = join '::' , $self->base , 'Unrelated';
+        $self->parent       = join '::' , $self->base , 'Parent';
 
-		# make note of the default method and attribute values
-		my	$default_method		  = DEFAULT_METHOD;
-		my	$default_attribute	= DEFAULT_ATTRIBUTE;
+    # make note of the default method and attribute values
+    my  $default_method     = DEFAULT_METHOD;
+    my  $default_attribute  = DEFAULT_ATTRIBUTE;
 
-		# make a copy of the accessors' code
-		my	$accessors			    = ACCESSORS;
+    # make a copy of the accessors' code
+    my  $accessors          = ACCESSORS;
 
-		# do we have access checking?
-		my	$strict				      =  ( defined $self->check )
-		  	       				                 ? $self->check : 'undef';
+    # do we have access checking?
+    my  $strict             =  ( defined $self->check )
+                                       ? $self->check : 'undef';
 
-		# create the parent class
+    # create the parent class
     #   - provided it hasn't been created before
     my  $pkg    = $self->parent;
     #   - convert the package name into a file name
     my  $file   = catfile( split '::' , $pkg ) . '.pm';
-		unless ( $INC{ $file } ) {
-			my	$dfn	= <<__EODfN__;
+    unless ( $INC{ $file } ) {
+      my  $dfn  = <<__EODfN__;
 package $pkg;
 
 use strict;
@@ -488,26 +488,26 @@ $accessors
 1;
 __EODfN__
 
-		  # attempt to instatiate this package
-	    eval $dfn
-		    or warn __PACKAGE__ , ": failed to create $pkg:\n\t$@"
-		   and return undef;
+      # attempt to instatiate this package
+      eval $dfn
+        or warn __PACKAGE__ , ": failed to create $pkg:\n\t$@"
+       and return undef;
     }
 
-		# define the packages
-		#   NB: only define base and unrelated here, the derived
-		#       class simply inherits everything from base
-		foreach my $pkg ( map { $self->$_() } qw( base unrelated ) ) {
-			# if this package has already been defined then ignore it
+    # define the packages
+    #   NB: only define base and unrelated here, the derived
+    #       class simply inherits everything from base
+    foreach my $pkg ( map { $self->$_() } qw( base unrelated ) ) {
+      # if this package has already been defined then ignore it
       #   - convert the package name into a file name
       my  $file   = catfile( split '::' , $pkg ) . '.pm';
-			next		    if ( defined $INC{ $file } );
+      next        if ( defined $INC{ $file } );
 
       # does this class have a parent class?
       my  $parent = ( $pkg eq $self->base ) ? $self->parent : '';
 
-			# create the package definition
-			my	$dfn	  = <<__EODfN__;
+      # create the package definition
+      my  $dfn    = <<__EODfN__;
 package $pkg;
 
 use strict;
@@ -521,11 +521,11 @@ __PACKAGE__->declare( $type  => { attribute => $default_attribute } ,
 # define the $type method
 sub method
 {
-	my	\$self	= __PACKAGE__->$type( shift );
+  my  \$self  = __PACKAGE__->$type( shift );
 
-	# don't have to do anything, we're only interested in whether we can call
-	# this routine
-	return $default_method;
+  # don't have to do anything, we're only interested in whether we can call
+  # this routine
+  return $default_method;
 } # method()
 
 # include the accessors
@@ -545,16 +545,16 @@ $accessors
 # lvalue assignments
 sub lvalue
 {
-	my	\$self	= __PACKAGE__->public( shift );
-		  \$self->attribute	= shift;
+  my  \$self  = __PACKAGE__->public( shift );
+      \$self->attribute = shift;
 } # lvalue()
 
 
 # argument assignment
 sub argument
 {
-	my	\$self	= __PACKAGE__->public( shift );
-		  \$self->attribute( shift );
+  my  \$self  = __PACKAGE__->public( shift );
+      \$self->attribute( shift );
 } # argument()
 
 
@@ -566,30 +566,30 @@ sub argument
 # reset the instance attribute
 sub reset
 {
-	my	\$self	= __PACKAGE__->public( shift );
-	# NB: use argument style so that non-modifiable attributes will silently
-	#     fail (other parts of the tests should pick this up)
-		  \$self->attribute( shift );
+  my  \$self  = __PACKAGE__->public( shift );
+  # NB: use argument style so that non-modifiable attributes will silently
+  #     fail (other parts of the tests should pick this up)
+      \$self->attribute( shift );
 } # reset()
 
 
 1; # end of $pkg
 __EODfN__
 
-			# attempt to instantiate this package
-			eval $dfn
-				or warn __PACKAGE__ . ": failed to create $pkg:\n\t$@"
-					and return undef;
-		}
+      # attempt to instantiate this package
+      eval $dfn
+        or warn __PACKAGE__ . ": failed to create $pkg:\n\t$@"
+          and return undef;
+    }
 
-		# create the derived class
+    # create the derived class
     #   - provided it hasn't been created before
         $pkg  = $self->derived;
     #   - convert the package name into a file name
         $file   = catfile( split '::' , $pkg ) . '.pm';
-		unless ( $INC{ $file } ) {
-		  my	$base	= $self->base;
-      my	$dfn	= <<__EODfN__;
+    unless ( $INC{ $file } ) {
+      my  $base = $self->base;
+      my  $dfn  = <<__EODfN__;
 package $pkg;
 
 use strict;
@@ -601,20 +601,20 @@ $accessors
 1;
 __EODfN__
 
-		  # attempt to instatiate this package
+      # attempt to instatiate this package
       eval $dfn
         or warn __PACKAGE__ , ": failed to create $pkg:\n\t$@"
        and return undef;
     }
 
-		# create the object instances
-		$self->instance		= $self->base->new			  or return undef;
-		$self->inherited	= $self->derived->new		  or return undef;
-		$self->foreign		= $self->unrelated->new   or return undef;
-		$self->super  		= $self->parent->new      or return undef;
+    # create the object instances
+    $self->instance   = $self->base->new        or return undef;
+    $self->inherited  = $self->derived->new     or return undef;
+    $self->foreign    = $self->unrelated->new   or return undef;
+    $self->super      = $self->parent->new      or return undef;
 
-		1;	# everything is OK
-	} # init()
+    1;  # everything is OK
+  } # init()
 
 ); # declare()
 
@@ -635,10 +635,10 @@ __EODfN__
   my  $name = sub { return $__NAME__[ $_[ 0 ] ] }; # $name()
 
 
-	# $code()
-	#
-	# Extract the required instance/class
-	my	$code	= sub {
+  # $code()
+  #
+  # Extract the required instance/class
+  my  $code = sub {
                 my  $method = $name->( $_[ 1 ] );
 
                 return $_[ 0 ]->$method();
@@ -649,9 +649,9 @@ __EODfN__
 # Extract the context from the given test code.
 sub context
 {
-	my	$self	= __PACKAGE__->private( $_[ 0 ] );
+  my  $self = __PACKAGE__->private( $_[ 0 ] );
 
-	return $code->( $self , _GET_CONTEXT->( $_[ 1 ] ) );
+  return $code->( $self , _GET_CONTEXT->( $_[ 1 ] ) );
 } # context()
 
 
@@ -671,9 +671,9 @@ sub context_string
 # Extract the target from the given test code.
 sub target
 {
-	my	$self	= __PACKAGE__->private( $_[ 0 ] );
+  my  $self = __PACKAGE__->private( $_[ 0 ] );
 
-	return $code->( $self , _GET_TARGET->( $_[ 1 ] ) );
+  return $code->( $self , _GET_TARGET->( $_[ 1 ] ) );
 } # target()
 
 
@@ -695,11 +695,11 @@ sub target_string
 # Extract the focus from the given test code.
 sub focus
 {
-	my	$self	  = __PACKAGE__->private( $_[ 0 ] );
-	my	$focus	= _GET_FOCUS->( $_[ 1 ] );
+  my  $self   = __PACKAGE__->private( $_[ 0 ] );
+  my  $focus  = _GET_FOCUS->( $_[ 1 ] );
 
-	return 'attribute'		if ( $focus & _ATTRIBUTE );
-	return 'method';
+  return 'attribute'    if ( $focus & _ATTRIBUTE );
+  return 'method';
 } # focus()
 
 
@@ -708,8 +708,8 @@ sub focus
 # Extract the result from the given test code.
 sub result
 {
-	my	$self	= __PACKAGE__->private( shift );
-	return _GET_RESULT->( $_[ 0 ] );
+  my  $self = __PACKAGE__->private( shift );
+  return _GET_RESULT->( $_[ 0 ] );
 } # result()
 
 
@@ -718,8 +718,8 @@ sub result
 # Extract the tests from the given code.
 sub test
 {
-	my	$self	= __PACKAGE__->private( shift );
-	return _GET_TEST->( $_[ 0 ] );
+  my  $self = __PACKAGE__->private( shift );
+  return _GET_TEST->( $_[ 0 ] );
 } # test()
 
 
@@ -729,15 +729,15 @@ sub test
 # values.
 sub reset
 {
-	my	$self	= __PACKAGE__->private( shift );
+  my  $self = __PACKAGE__->private( shift );
 
-	# these shouldn't fail, as we are calling publicly accessible
-	# methods on class instances, but if they do, then we should raise
-	# the alarm
-		$_->reset( DEFAULT_ATTRIBUTE )
-			foreach ( map { $self->$_() } qw( instance inherited foreign ) );
+  # these shouldn't fail, as we are calling publicly accessible
+  # methods on class instances, but if they do, then we should raise
+  # the alarm
+    $_->reset( DEFAULT_ATTRIBUTE )
+      foreach ( map { $self->$_() } qw( instance inherited foreign ) );
 
-	return 1;	# everything has been reset (hopefully)
+  return 1; # everything has been reset (hopefully)
 } # reset()
 
 
@@ -748,125 +748,125 @@ Run the tests.
 =cut
 sub run
 {
-	my	$self	= __PACKAGE__->public( shift );
+  my  $self = __PACKAGE__->public( shift );
 
   # generate the test message
   my  $msg  = sub { '(from ' . $self->context_string( $_[ 0 ] ) . ' on '
                              . $self->target_string(  $_[ 0 ] ) . ')'    };
 
-	# run through each test
-	TYPE: foreach my $type ( map { @{ $_ } } $self->tests ) {
-		# determine the context and target
-		my	$context	= $self->context( $type );
-		my	$target		= $self->target( $type );
+  # run through each test
+  TYPE: foreach my $type ( map { @{ $_ } } $self->tests ) {
+    # determine the context and target
+    my  $context  = $self->context( $type );
+    my  $target   = $self->target( $type );
 
-		# what tests are we to perform?
-		my	$test		  = $self->test  ( $type );
-		# do we want this test to live or die?
-		my	$live		  = $self->result( $type );
+    # what tests are we to perform?
+    my  $test     = $self->test  ( $type );
+    # do we want this test to live or die?
+    my  $live     = $self->result( $type );
 
-		# now we need to determine the focus of this test
-		# i.e. are we interested in an attribute or a method?
-		my	$block;	# the block of code to execute
-		FOCUS: foreach ( $self->focus( $type ) ) {
-			# we're testing the attribute
-			#    - attributes may be:
-			#        . accessed
-			#        . read
-			#        . write by argument
-			#        . write by lvalue
-			/^attribute/o	&& do {
-				# need to check to see if we can access the attribute
-				( $test & _TEST_ACCESS )	&& do {
-					if ( $live ) {
-						lives_ok { $context->get( $target ) }
-					         	'attribute access honoured ' . $msg->( $type );
-					} else {
-						 dies_ok { $context->get( $target ) }
-						        'attribute access forbidden ' . $msg->( $type );
-					}
-				};
+    # now we need to determine the focus of this test
+    # i.e. are we interested in an attribute or a method?
+    my  $block; # the block of code to execute
+    FOCUS: foreach ( $self->focus( $type ) ) {
+      # we're testing the attribute
+      #    - attributes may be:
+      #        . accessed
+      #        . read
+      #        . write by argument
+      #        . write by lvalue
+      /^attribute/o && do {
+        # need to check to see if we can access the attribute
+        ( $test & _TEST_ACCESS )  && do {
+          if ( $live ) {
+            lives_ok { $context->get( $target ) }
+                    'attribute access honoured ' . $msg->( $type );
+          } else {
+             dies_ok { $context->get( $target ) }
+                    'attribute access forbidden ' . $msg->( $type );
+          }
+        };
 
-				# reset the attribute values
-				$self->reset      unless ( $self->type eq 'abstract' );
+        # reset the attribute values
+        $self->reset      unless ( $self->type eq 'abstract' );
 
-				# need to check to see if we can access the attribute
-				( $test & _TEST_READ   )	&& do {
-					if ( $live ) {
-						lives_and {
-							is $context->get( $target ) , DEFAULT_ATTRIBUTE
-						} 'attribute read honoured ' . $msg->( $type );
-					} else {
-						  dies_ok {
-						 	   $context->get( $target )
-						} 'attribute read forbidden ' . $msg->( $type );
-					}
-				};
+        # need to check to see if we can access the attribute
+        ( $test & _TEST_READ   )  && do {
+          if ( $live ) {
+            lives_and {
+              is $context->get( $target ) , DEFAULT_ATTRIBUTE
+            } 'attribute read honoured ' . $msg->( $type );
+          } else {
+              dies_ok {
+                 $context->get( $target )
+            } 'attribute read forbidden ' . $msg->( $type );
+          }
+        };
 
-				# need to check with writing to an attribute with an
-				# argument
-				( $test & _TEST_WRITE_ARG )	&& do {
-					if ( $live ) {
-						ok( $context->cmp_argument( $target )     ,
-						    'attribute write argument honoured ' . $msg->( $type ) );
-					} else {
-						dies_ok { $context->cmp_argument( $target ) or die }
-						    'attribute write argument forbidden ' . $msg->( $type );
-					}
-				};
+        # need to check with writing to an attribute with an
+        # argument
+        ( $test & _TEST_WRITE_ARG ) && do {
+          if ( $live ) {
+            ok( $context->cmp_argument( $target )     ,
+                'attribute write argument honoured ' . $msg->( $type ) );
+          } else {
+            dies_ok { $context->cmp_argument( $target ) or die }
+                'attribute write argument forbidden ' . $msg->( $type );
+          }
+        };
 
-				# reset the attribute values
-				  $self->reset      unless ( $self->type eq 'abstract' );
+        # reset the attribute values
+          $self->reset      unless ( $self->type eq 'abstract' );
 
-				# need to check with writing to an attribute as
-				# lvalue
-				( $test & _TEST_WRITE_LVALUE )	&& do {
-					if ( $live ) {
-						ok( $context->cmp_lvalue( $target )     ,
-						    'attribute write lvalue honoured ' . $msg->( $type ) );
-					} else {
-						dies_ok {
-							$context->cmp_lvalue( $target )
-						} 'attribute write lvalue forbidden ' . $msg->( $type );
-					}
-				};
-			};
+        # need to check with writing to an attribute as
+        # lvalue
+        ( $test & _TEST_WRITE_LVALUE )  && do {
+          if ( $live ) {
+            ok( $context->cmp_lvalue( $target )     ,
+                'attribute write lvalue honoured ' . $msg->( $type ) );
+          } else {
+            dies_ok {
+              $context->cmp_lvalue( $target )
+            } 'attribute write lvalue forbidden ' . $msg->( $type );
+          }
+        };
+      };
 
-			# we're testing the method
-			#    - methods may be:
-			#        . accessed
-			#        . read
-			#    - everything else (such as lvalue assignment) is
-			#        controlled by Perl, not Class::Declare
-			/^method/o		&& do {
-				# do we need to check access rights?
-				( $test & _TEST_ACCESS )	&& do {
-					if ( $live ) {
-						lives_ok { $context->call( $target ) }
-						         'method access honoured ' . $msg->( $type );
-					} else {
-						 dies_ok { $context->call( $target ) }
-						         'method access forbidden ' . $msg->( $type );
-					}
-				};
+      # we're testing the method
+      #    - methods may be:
+      #        . accessed
+      #        . read
+      #    - everything else (such as lvalue assignment) is
+      #        controlled by Perl, not Class::Declare
+      /^method/o    && do {
+        # do we need to check access rights?
+        ( $test & _TEST_ACCESS )  && do {
+          if ( $live ) {
+            lives_ok { $context->call( $target ) }
+                     'method access honoured ' . $msg->( $type );
+          } else {
+             dies_ok { $context->call( $target ) }
+                     'method access forbidden ' . $msg->( $type );
+          }
+        };
 
-				# do we need to check read access rights?
-				( $test & _TEST_READ )		&& do {
-					if ( $live ) {
-						lives_and {
-							  is $context->call( $target ) , DEFAULT_METHOD
-						} 'method read honoured ' . $msg->( $type );
-					} else {
-						  dies_ok {
-						  	is $context->call( $target ) , DEFAULT_METHOD
-						} 'method read forbidden '. $msg->( $type );
-					}
-				};
-			};
-		}
-	}
+        # do we need to check read access rights?
+        ( $test & _TEST_READ )    && do {
+          if ( $live ) {
+            lives_and {
+                is $context->call( $target ) , DEFAULT_METHOD
+            } 'method read honoured ' . $msg->( $type );
+          } else {
+              dies_ok {
+                is $context->call( $target ) , DEFAULT_METHOD
+            } 'method read forbidden '. $msg->( $type );
+          }
+        };
+      };
+    }
+  }
 
-	return 1;	# everything is OK
+  return 1; # everything is OK
 } # run()
 
 =pod
@@ -891,5 +891,5 @@ it under the same terms as Perl itself.
 =cut
 
 ################################################################################
-1;	# end of module
+1;  # end of module
 __END__

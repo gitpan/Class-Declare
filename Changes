@@ -1,5 +1,9 @@
 Revision history for Perl module Class::Declare
-$Id: Changes,v 1.18 2008-07-07 15:22:12 ian Exp $
+$Id: Changes 1510 2010-08-21 23:16:50Z ian $
+
+0.14  Sun Aug 22 00:14;32 2010
+  - changed dump() and hash() to no longer be dynamically loaded when first
+    used; now these methods are always loaded and available
 
 0.13  Sat Aug  8 19:53:12 2009
   - corrected bug #48499 with Test::Builder attempting to load overload.pm

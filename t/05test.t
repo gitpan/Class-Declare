@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 05test.t,v 1.7 2006-01-31 21:38:03 ian Exp $
+# $Id: 05test.t 1511 2010-08-21 23:24:49Z ian $
 
 # test.t
 #
@@ -7,7 +7,7 @@
 # test instances correctly.
 
 use strict;
-use lib       	qw( t );
+use lib         qw( t );
 use Test::More;
 use Test::Exception;
 
@@ -16,7 +16,7 @@ BEGIN{ use_ok( 'Class::Declare::Test' ) }
 
 # create test instances to ensure they can be created
 #    NB: we'll use an empty set of tests
-my	$tests	= [];
+my  $tests  = [];
 
 # create a class instance
 lives_ok { Class::Declare::Test->new( tests => $tests  ,
