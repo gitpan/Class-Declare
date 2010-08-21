@@ -64,22 +64,6 @@ L<Class::Declare>-derived object or package.
     $__GET_VALUES__     = $_[ 1 ] unless ( defined $__GET_VALUES__     );
     $__GET_FRIENDS__    = $_[ 2 ] unless ( defined $__GET_FRIENDS__    );
 
-    # about to do something that perhaps we shouldn't :)
-    {
-      no strict 'refs';
-
-      # remove this subroutine's entry from the symbol table
-      # that it can't be called again
-      undef *{ $sub };
-
-      # set the symbol table entry for Class::Declare::hash() to be
-      # the same as Class::Declare::Hash::hash()
-            $sub      = ( caller 2 )[ 3 ];
-      my  ( $method ) = ( $sub =~ m/([^:]+)$/o );
-
-         *{ $sub    } = *{ __PACKAGE__ . '::' . $method };
-    }
-
     1;  # that's all: hack complete :)
   }
 
