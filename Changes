@@ -1,7 +1,13 @@
 Revision history for Perl module Class::Declare
-$Id: Changes 1514 2010-08-22 13:59:28Z ian $
+$Id: Changes 1518 2010-08-22 23:56:21Z ian $
 
-0.16  Sun Sug 22 14:56:37 2010
+0.17  Mon Aug 23 00:49:12 2010
+  - changed $VERSION definition in Class::Declare::Dump and Class::Declare::Hash
+    to ensure Class::Declare passes tests until Perl 5.12.0+
+  - 5.12.0+ seems to expect a numeric string, and doesn't cope with an
+    evaluate expression (not entirely cool)
+
+0.16  Sun Aug 22 14:56:37 2010
   - updated copyright notices to show 2010
 
 0.15  Sun Aug 22 00:49:21 2010
