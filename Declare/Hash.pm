@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Hash.pm 1509 2010-08-21 23:10:21Z ian $
+# $Id: Hash.pm 1514 2010-08-22 13:59:28Z ian $
 package Class::Declare::Hash;
 
 use strict;
@@ -20,7 +20,7 @@ L<Class::Declare>, providing the B<hash()> routine.
 use base  qw( Class::Declare     );
 use vars  qw( $REVISION $VERSION );
 
-  $REVISION = '$Revision: 1509 $';
+  $REVISION = '$Revision: 1514 $';
   $VERSION  = Class::Declare->VERSION;
 
 
@@ -457,7 +457,7 @@ Ian Brayshaw, E<lt>ian@onemore.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003-2007 by Ian Brayshaw. All rights reserved.
+Copyright 2003-2010 by Ian Brayshaw. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

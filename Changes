@@ -1,7 +1,10 @@
 Revision history for Perl module Class::Declare
-$Id: Changes 1510 2010-08-21 23:16:50Z ian $
+$Id: Changes 1514 2010-08-22 13:59:28Z ian $
 
-0.14  Sun Aug 22 00:49:21 2010
+0.16  Sun Sug 22 14:56:37 2010
+  - updated copyright notices to show 2010
+
+0.15  Sun Aug 22 00:49:21 2010
   - removed deprecated code previously used in the dynamic loading of the
     dump() and hash() methods
 

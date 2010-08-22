@@ -1,6 +1,6 @@
 #!/usr/bin/perl -Tw
 
-# $Id: Declare.pm 1509 2010-08-21 23:10:21Z ian $
+# $Id: Declare.pm 1514 2010-08-22 13:59:28Z ian $
 package Class::Declare;
 
 use strict;
@@ -83,8 +83,8 @@ use base qw( Exporter );
 use vars qw/ $VERSION $REVISION @EXPORT_OK %EXPORT_TAGS /;
 
 # the version of this module
-             $VERSION = '0.15';
-            $REVISION = '$Revision: 1509 $';
+             $VERSION = '0.16';
+            $REVISION = '$Revision: 1514 $';
 
 # declare the read-write and read-only methods for export
 @EXPORT_OK    = qw( rw ro );
@@ -2199,7 +2199,7 @@ returns C<undef>.
   use strict;
   use base qw( Class::Declare );
   use vars qw( $REVISION      );
-               $REVISION = '$Revision: 1509 $';
+               $REVISION = '$Revision: 1514 $';
 
   ...
 
@@ -2353,7 +2353,7 @@ Ian Brayshaw, E<lt>ian@onemore.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2003-2007 Ian Brayshaw. All rights reserved.
+Copyright 2003-2010 Ian Brayshaw. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

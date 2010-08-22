@@ -1010,7 +1010,7 @@ DESCRIPTION
           use strict;
           use base qw( Class::Declare );
           use vars qw( $REVISION      );
-                       $REVISION = '$Revision: 1510 $';
+                       $REVISION = '$Revision: 1514 $';
 
           ...
 
@@ -1061,7 +1061,7 @@ AUTHOR
     Ian Brayshaw, <ian@onemore.org>
 
 COPYRIGHT AND LICENSE
-    Copyright 2003-2007 Ian Brayshaw. All rights reserved.
+    Copyright 2003-2010 Ian Brayshaw. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.

@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
-# $Id: Makefile.PL 1511 2010-08-21 23:24:49Z ian $
+# $Id: Makefile.PL 1514 2010-08-22 13:59:28Z ian $
 #
 # Makefile.PL for Class::Declare
 #
-# Copyright (c) 2003 Ian Brayshaw <ian@onemore.org>
+# Copyright (c) 2003-2010 Ian Brayshaw <ian@onemore.org>
 
 use 5.000;
 use ExtUtils::MakeMaker;
